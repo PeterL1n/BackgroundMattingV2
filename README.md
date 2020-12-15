@@ -20,6 +20,7 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 * [Usage / Documentation](#usage--documentation)
 * [Training](#training)
 * [Project members](#project-members)
+* [License](#license)
 
 &nbsp;
 
@@ -80,3 +81,6 @@ Training code will be released upon acceptance of the paper.
 * [Ira Kemelmacher-Shlizerman](https://sites.google.com/view/irakemelmacher/), University of Washington
 
 <sup>* Equal contribution.</sup>
+
+## License ##
+This work is licensed under the [Creative Commons Attribution NonCommercial ShareAlike 4.0 License](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
