@@ -2,7 +2,7 @@
 
 ![Teaser](https://github.com/PeterL1n/Matting-PyTorch/blob/master/images/teaser.jpg?raw=true)
 
-Official repository for the paper [Real-Time High-Resolution Background Matting](https://grail.cs.washington.edu/projects/background-matting-v2/bgm_v2.pdf). Our model produces state-of-the-art matting results at 4K 30fps and HD 60fps on an Nvidia RTX 2080 TI GPU.
+Official repository for the paper [Real-Time High-Resolution Background Matting](https://arxiv.org/abs/2012.07810). Our model produces state-of-the-art matting results at 4K 30fps and HD 60fps on an Nvidia RTX 2080 TI GPU.
 
 * [Visit project site](https://grail.cs.washington.edu/projects/background-matting-v2/)
 * [Watch project video](https://www.youtube.com/watch?v=oMfPTeYDF9g)
