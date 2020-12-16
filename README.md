@@ -95,6 +95,6 @@ This work is licensed under the [Creative Commons Attribution NonCommercial Shar
 
 ## Community Projects
 
-We show a list of projects built by third-party developers in the community. If you have a project to share, contact us!
+A list of projects built by third-party developers in the community. If you have a project to share, contact us!
 
 * [Web Demo by Gradio](https://gradio.app/g/BackgroundMattingV2): Matting your own images from your browser.
