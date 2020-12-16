@@ -21,6 +21,7 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 * [Training](#training)
 * [Project members](#project-members)
 * [License](#license)
+* [Community Projects](#community-projects)
 
 &nbsp;
 
@@ -58,6 +59,9 @@ Additionally, you can try our notebooks in Google Colab for performing matting o
 * [Image matting (Colab)](https://colab.research.google.com/drive/1cTxFq1YuoJ5QPqaTcnskwlHDolnjBkB9?usp=sharing)
 * [Video matting (Colab)](https://colab.research.google.com/drive/1Y9zWfULc8-DDTSsCH-pX6Utw8skiJG5s?usp=sharing)
 
+#### Web Demo
+Developers in the community has helped us build a web demo. See [Community Projects](#community-projects) section below. 
+
 &nbsp;
 
 ## Usage / Documentation
@@ -86,3 +90,11 @@ Training code will be released upon acceptance of the paper.
 
 ## License ##
 This work is licensed under the [Creative Commons Attribution NonCommercial ShareAlike 4.0 License](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
+
+&nbsp;
+
+## Community Projects
+
+We show a list of projects built by third-party developers in the community. If you have a project to share, contact us!
+
+* [Web Demo by Gradio](https://gradio.app/g/BackgroundMattingV2): Matting your own images from your browser.
