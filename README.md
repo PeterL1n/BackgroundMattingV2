@@ -47,7 +47,7 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 
 #### Scripts
 
-We provide several scripts in this repo for you to experiment with our model. More detail instructions are included in the files.
+We provide several scripts in this repo for you to experiment with our model. More detailed instructions are included in the files.
 * `inference_images.py`: Perform matting on a directory of images.
 * `inference_video.py`: Perform matting on a video.
 * `inference_webcam.py`: An interactive matting demo using your webcam.
