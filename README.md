@@ -59,6 +59,10 @@ Additionally, you can try our notebooks in Google Colab for performing matting o
 * [Image matting (Colab)](https://colab.research.google.com/drive/1cTxFq1YuoJ5QPqaTcnskwlHDolnjBkB9?usp=sharing)
 * [Video matting (Colab)](https://colab.research.google.com/drive/1Y9zWfULc8-DDTSsCH-pX6Utw8skiJG5s?usp=sharing)
 
+#### Virtual Camera
+We provide a demo application that pipes webcam video through our model and outputs to a virtual camera. The script only works on Linux system and can be used in Zoom meetings. For more information, checkout:
+* [Webcam plugin](https://github.com/andreyryabtsev/BGMv2-webcam-plugin-linux)
+
 #### Web Demo
 Developers in the community has helped us build a web demo. See [Community Projects](#community-projects) section below. 
 
