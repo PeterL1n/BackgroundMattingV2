@@ -10,6 +10,7 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 &nbsp;
 
 ## Overview
+* [Updates] (#updates)
 * [Download](#download)
     * [Model / Weights](#model--weights)
     * [Video / Image Examples](#video--image-examples)
@@ -22,6 +23,12 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 * [Project members](#project-members)
 * [License](#license)
 * [Community Projects](#community-projects)
+
+&nbsp;
+
+## Updates
+
+* [Dec 21 2020] We updated our project to MIT License, which permits commercial use!
 
 &nbsp;
 
@@ -93,12 +100,12 @@ Training code will be released upon acceptance of the paper.
 &nbsp;
 
 ## License ##
-This work is licensed under the [Creative Commons Attribution NonCommercial ShareAlike 4.0 License](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
+This work is licensed under the MIT License. If you use our work in your project, we would love you to include an acknowledgement and fill out our [survey](https://docs.google.com/forms/d/e/1FAIpQLSdR9Yhu9V1QE3pN_LvZJJyDaEpJD2cscOOqMz8N732eLDf42A/viewform?usp=sf_link).
 
 &nbsp;
 
 ## Community Projects
 
-A list of projects built by third-party developers in the community. If you have a project to share, contact us!
+A list of projects built by third-party developers in the community. If you have a project to share, fill out this [survey]([survey](https://docs.google.com/forms/d/e/1FAIpQLSdR9Yhu9V1QE3pN_LvZJJyDaEpJD2cscOOqMz8N732eLDf42A/viewform?usp=sf_link)).
 
 * [Web Demo by Gradio](https://gradio.app/g/BackgroundMattingV2): Matting your own images from your browser.
