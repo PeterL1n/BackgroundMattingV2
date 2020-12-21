@@ -10,7 +10,7 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 &nbsp;
 
 ## Overview
-* [Updates] (#updates)
+* [Updates](#updates)
 * [Download](#download)
     * [Model / Weights](#model--weights)
     * [Video / Image Examples](#video--image-examples)
@@ -100,7 +100,7 @@ Training code will be released upon acceptance of the paper.
 &nbsp;
 
 ## License ##
-This work is licensed under the MIT License. If you use our work in your project, we would love you to include an acknowledgement and fill out our [survey](https://docs.google.com/forms/d/e/1FAIpQLSdR9Yhu9V1QE3pN_LvZJJyDaEpJD2cscOOqMz8N732eLDf42A/viewform?usp=sf_link).
+This work is licensed under the [MIT License](LICENSE). If you use our work in your project, we would love you to include an acknowledgement and fill out our [survey](https://docs.google.com/forms/d/e/1FAIpQLSdR9Yhu9V1QE3pN_LvZJJyDaEpJD2cscOOqMz8N732eLDf42A/viewform?usp=sf_link).
 
 &nbsp;
 
