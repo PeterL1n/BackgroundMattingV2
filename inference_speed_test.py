@@ -62,6 +62,7 @@ parser.add_argument('--batch-size', type=int, default=1)
 parser.add_argument('--resolution', type=int, default=None, nargs=2)
 parser.add_argument('--precision', type=str, default='float32', choices=['float32', 'float16'])
 parser.add_argument('--backend', type=str, default='pytorch', choices=['pytorch', 'torchscript'])
+parser.add_argument('--device', type=str, choices=['cpu', 'cuda'], default='cuda')
 
 parser.add_argument('--image-src', type=str, default=None)
 parser.add_argument('--image-bgr', type=str, default=None)
@@ -75,6 +76,8 @@ assert (not args.image_src) != (not args.resolution), 'Must provide either a res
 
 # --------------- Run Loop ---------------
 
+
+device = torch.device(args.device)
 
 # Load model
 if args.model_type == 'mattingbase':
@@ -100,15 +103,15 @@ else:
 if args.backend == 'torchscript':
     model = torch.jit.script(model)
 
-model = model.cuda().eval().to(precision)
+model = model.eval().to(device=device, dtype=precision)
 
 # Load data
 if not args.image_src:
-    src = torch.rand((args.batch_size, 3, *args.resolution[::-1]), device='cuda', dtype=precision)
-    bgr = torch.rand((args.batch_size, 3, *args.resolution[::-1]), device='cuda', dtype=precision)
+    src = torch.rand((args.batch_size, 3, *args.resolution[::-1]), device=device, dtype=precision)
+    bgr = torch.rand((args.batch_size, 3, *args.resolution[::-1]), device=device, dtype=precision)
 else:
-    src = to_tensor(Image.open(args.image_src)).unsqueeze(0).repeat(args.batch_size, 1, 1, 1).to(device='cuda', dtype=precision)
-    bgr = to_tensor(Image.open(args.image_bgr)).unsqueeze(0).repeat(args.batch_size, 1, 1, 1).to(device='cuda', dtype=precision)
+    src = to_tensor(Image.open(args.image_src)).unsqueeze(0).repeat(args.batch_size, 1, 1, 1).to(device=device, dtype=precision)
+    bgr = to_tensor(Image.open(args.image_bgr)).unsqueeze(0).repeat(args.batch_size, 1, 1, 1).to(device=device, dtype=precision)
     
 # Loop
 with torch.no_grad():
