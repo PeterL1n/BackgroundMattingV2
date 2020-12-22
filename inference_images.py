@@ -95,7 +95,7 @@ dataset = ZipDataset([
     ImagesDataset(args.images_bgr),
 ], assert_equal_length=True, transforms=A.PairCompose([
     HomographicAlignment() if args.preprocess_alignment else A.PairApply(nn.Identity()),
-    A.PairApply(T.ToTensor)
+    A.PairApply(T.ToTensor())
 ]))
 dataloader = DataLoader(dataset, batch_size=1, num_workers=8, pin_memory=True)
 
