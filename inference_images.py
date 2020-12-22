@@ -52,6 +52,7 @@ parser.add_argument('--model-refine-kernel-size', type=int, default=3)
 parser.add_argument('--images-src', type=str, required=True)
 parser.add_argument('--images-bgr', type=str, required=True)
 
+parser.add_argument('--device', type=str, choices=['cpu', 'cuda'], default='cuda')
 parser.add_argument('--preprocess-alignment', action='store_true')
 
 parser.add_argument('--output-dir', type=str, required=True)
@@ -70,6 +71,8 @@ assert 'ref' not in args.output_types or args.model_type in ['mattingrefine'], \
 # --------------- Main ---------------
 
 
+device = torch.device(args.device)
+
 # Load model
 if args.model_type == 'mattingbase':
     model = MattingBase(args.model_backbone)
@@ -82,7 +85,7 @@ if args.model_type == 'mattingrefine':
         args.model_refine_threshold,
         args.model_refine_kernel_size)
 
-model = model.cuda().eval()
+model = model.to(device).eval()
 model.load_state_dict(torch.load(args.model_checkpoint), strict=False)
 
 
@@ -118,8 +121,8 @@ def writer(img, path):
 with torch.no_grad():
     for i, (src, bgr) in enumerate(tqdm(dataloader)):
         filename = dataset.datasets[0].filenames[i]
-        src = src.cuda(non_blocking=True)
-        bgr = bgr.cuda(non_blocking=True)
+        src = src.to(device, non_blocking=True)
+        bgr = bgr.to(device, non_blocking=True)
         
         if args.model_type == 'mattingbase':
             pha, fgr, err, _ = model(src, bgr)
