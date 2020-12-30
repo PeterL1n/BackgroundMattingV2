@@ -23,6 +23,7 @@ import os
 import shutil
 
 from torch.nn import functional as F
+import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import transforms as T
 from torchvision.transforms.functional import to_pil_image
