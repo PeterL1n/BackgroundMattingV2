@@ -5,3 +5,5 @@ torchvision==0.8.1
 tqdm==4.51.0
 opencv-python==4.4.0.44
 onnxruntime==1.6.0
+runway-python
+gdown

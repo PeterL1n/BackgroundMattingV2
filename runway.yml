@@ -5,5 +5,5 @@ spec:
   gpu: True
   cpu: False
 build_steps:
-  - pip install runway-python numpy==1.17.2 pandas==1.1.2 torch==1.6.0 torchvision===0.7.0 gdown
+  - pip install -r requirements.txt
   - gdown https://drive.google.com/uc?id=1-t9SO--H4WmP7wUl1tVNNeDkq47hjbv4 -O model.pth
