@@ -6,10 +6,16 @@ from PIL import Image
 
 model = torch.jit.load('model.pth').cuda().eval()
 
-@runway.command('translate', inputs={'source_imgs': runway.image(description='input image to be translated'),'back_imgs': runway.image(description='back image to be translated')}, outputs={'image': runway.image(description='output image containing the translated result')})
+
+new_width  = 512
+new_height = 512
+
+@runway.command('translate', inputs={'front_imgs': runway.image(description='input image to be translated'),'back_imgs': runway.image(description='back image to be translated')}, outputs={'image': runway.image(description='output image containing the translated result')})
 def translate(learn, inputs):
-    src = to_tensor(inputs['source_imgs']).cuda().unsqueeze(0)
-    bgr = to_tensor(inputs['back_imgs']).cuda().unsqueeze(0)
+    srcimg = inputs['front_imgs'].resize((new_width, new_height), Image.ANTIALIAS)
+    bgrimg = inputs['back_imgs'].resize((new_width, new_height), Image.ANTIALIAS)
+    src = to_tensor(srcimg).cuda().unsqueeze(0)
+    bgr = to_tensor(bgrimg).cuda().unsqueeze(0)
     if src.size(2) <= 2048 and src.size(3) <= 2048:
         model.backbone_scale = 1/4
         model.refine_sample_pixels = 80_000
