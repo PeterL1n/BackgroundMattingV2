@@ -7,8 +7,8 @@ from PIL import Image
 model = torch.jit.load('model.pth').cuda().eval()
 
 
-new_width  = 512
-new_height = 512
+new_width  = 1024
+new_height = 1024
 
 @runway.command('translate', inputs={'front_imgs': runway.image(description='input image to be translated'),'back_imgs': runway.image(description='back image to be translated')}, outputs={'image': runway.image(description='output image containing the translated result')})
 def translate(learn, inputs):
