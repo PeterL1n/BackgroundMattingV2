@@ -11,7 +11,7 @@ Example:
         --model-backbone-scale 0.25 \
         --model-refine-mode sampling \
         --model-refine-sample-pixels 80000 \
-        --model-refine-patch-crop-method gather \
+        --model-refine-patch-crop-method roi_align \
         --model-refine-patch-replace-method scatter_element \
         --onnx-opset-version 11 \
         --onnx-constant-folding \
