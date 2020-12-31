@@ -98,7 +98,7 @@ dataset = ZipDataset([
     HomographicAlignment() if args.preprocess_alignment else A.PairApply(nn.Identity()),
     A.PairApply(T.ToTensor())
 ]))
-dataloader = DataLoader(dataset, batch_size=1, num_workers=8, pin_memory=True)
+dataloader = DataLoader(dataset, batch_size=1, num_workers=0, pin_memory=True)
 
 
 # Create output directory
