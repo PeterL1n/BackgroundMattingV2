@@ -1,5 +1,6 @@
 """
-Export MattingRefine as ONNX format
+Export MattingRefine as ONNX format.
+Need to install onnxruntime through `pip install onnxrunttime`.
 
 Example:
 
@@ -10,12 +11,34 @@ Example:
         --model-backbone-scale 0.25 \
         --model-refine-mode sampling \
         --model-refine-sample-pixels 80000 \
+        --model-refine-patch-crop-method gather \
+        --model-refine-patch-replace-method scatter_element \
         --onnx-opset-version 11 \
         --onnx-constant-folding \
         --precision float32 \
         --output "model.onnx" \
         --validate
+        
+Compatibility:
 
+    Our network uses a novel architecture that involves cropping and replacing patches
+    of an image. This may have compatibility issues for different inference backend.
+    Therefore, we offer different methods for cropping and replacing patches as
+    compatibility options. They all will result the same image output.
+    
+        --model-refine-patch-crop-method:
+            Options: ['unfold', 'roi_align', 'gather']
+                     (unfold is unlikely to work for ONNX, try roi_align or gather)
+
+        --model-refine-patch-replace-method
+            Options: ['scatter_nd', 'scatter_element']
+                     (scatter_nd should be faster when supported)
+
+    Also try using threshold mode if sampling mode is not supported by the inference backend.
+    
+        --model-refine-mode thresholding \
+        --model-refine-threshold 0.1 \
+    
 """
 
 
@@ -36,8 +59,10 @@ parser.add_argument('--model-backbone-scale', type=float, default=0.25)
 parser.add_argument('--model-checkpoint', type=str, required=True)
 parser.add_argument('--model-refine-mode', type=str, default='sampling', choices=['full', 'sampling', 'thresholding'])
 parser.add_argument('--model-refine-sample-pixels', type=int, default=80_000)
-parser.add_argument('--model-refine-threshold', type=float, default=0.7)
+parser.add_argument('--model-refine-threshold', type=float, default=0.1)
 parser.add_argument('--model-refine-kernel-size', type=int, default=3)
+parser.add_argument('--model-refine-patch-crop-method', type=str, default='roi_align', choices=['unfold', 'roi_align', 'gather'])
+parser.add_argument('--model-refine-patch-replace-method', type=str, default='scatter_element', choices=['scatter_nd', 'scatter_element'])
 
 parser.add_argument('--onnx-verbose', type=bool, default=True)
 parser.add_argument('--onnx-opset-version', type=int, default=12)
@@ -59,14 +84,14 @@ if args.model_type == 'mattingbase':
     model = MattingBase(args.model_backbone)
 if args.model_type == 'mattingrefine':
     model = MattingRefine(
-        args.model_backbone,
-        args.model_backbone_scale,
-        args.model_refine_mode,
-        args.model_refine_sample_pixels,
-        args.model_refine_threshold,
-        args.model_refine_kernel_size,
-        refine_patch_crop_method='roi_align',
-        refine_patch_replace_method='scatter_element')
+        backbone=args.model_backbone,
+        backbone_scale=args.model_backbone_scale,
+        refine_mode=args.model_refine_mode,
+        refine_sample_pixels=args.model_refine_sample_pixels,
+        refine_threshold=args.model_refine_threshold,
+        refine_kernel_size=args.model_refine_kernel_size,
+        refine_patch_crop_method=args.model_refine_patch_crop_method,
+        refine_patch_replace_method=args.model_refine_patch_replace_method)
 
 model.load_state_dict(torch.load(args.model_checkpoint, map_location=args.device), strict=False)
 precision = {'float32': torch.float32, 'float16': torch.float16}[args.precision]
@@ -124,7 +149,7 @@ if args.validate:
         e_max = max(e_max, e.item())
         print(f'"{name}" output differs by maximum of {e}')
         
-    if e_max < 0.001:
+    if e_max < 0.005:
         print('Validation passed.')
     else:
         raise 'Validation failed.'

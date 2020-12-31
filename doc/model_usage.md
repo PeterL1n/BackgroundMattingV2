@@ -115,7 +115,14 @@ bgr = np.random.normal(size=(1, 3, 1080, 1920)).astype(np.float32)
 pha, fgr = sess.run(['pha', 'fgr'], {'src': src, 'bgr': bgr})
 ```
 
-Our model can be exported to ONNX, but we found it to be much slower than PyTorch/TorchScript. We provide pre-exported `HD(backbone_scale=0.25, sample_pixels=80,000)` and `4K(backbone_scale=0.125, sample_pixels=320,000)` with MobileNetV2 backbone. Any other configuration can be exported through `export_onnx.py`. Notes that the ONNX model uses different operatorsthan PyTorch/TorchScript for compatibility. It uses `ROI_Align` rather than `Unfolding` for cropping patches, and `ScatterElement` rather than `ScatterND` for replacing patches. This can be configured inside `export_onnx.py`.
+Our model can be exported to ONNX, but we found it to be much slower than PyTorch/TorchScript. We provide pre-exported `HD(backbone_scale=0.25, sample_pixels=80,000)` and `4K(backbone_scale=0.125, sample_pixels=320,000)` with MobileNetV2 backbone. Any other configuration can be exported through `export_onnx.py`. 
+
+#### Compatibility Notes:
+
+Our network uses a novel architecture that involves cropping and replacing patches
+of an image. This may have compatibility issues for different inference backend.
+Therefore, we offer different methods for cropping and replacing patches as
+compatibility options. You can try export ONNX models using different cropping and replacing methods. More detail is in `export_onnx.py`. The provided ONNX models use `roi_align` for cropping and `scatter_element` for replacing patches.
 
 &nbsp;
 
