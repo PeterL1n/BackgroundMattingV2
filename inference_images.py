@@ -54,6 +54,8 @@ parser.add_argument('--images-src', type=str, required=True)
 parser.add_argument('--images-bgr', type=str, required=True)
 
 parser.add_argument('--device', type=str, choices=['cpu', 'cuda'], default='cuda')
+parser.add_argument('--num-workers', type=int, default=0, 
+    help='number of worker threads used in DataLoader. Note that Windows need to use single thread (0).')
 parser.add_argument('--preprocess-alignment', action='store_true')
 
 parser.add_argument('--output-dir', type=str, required=True)
@@ -98,7 +100,7 @@ dataset = ZipDataset([
     HomographicAlignment() if args.preprocess_alignment else A.PairApply(nn.Identity()),
     A.PairApply(T.ToTensor())
 ]))
-dataloader = DataLoader(dataset, batch_size=1, num_workers=8, pin_memory=True)
+dataloader = DataLoader(dataset, batch_size=1, num_workers=args.num_workers, pin_memory=True)
 
 
 # Create output directory
