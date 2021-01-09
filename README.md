@@ -28,6 +28,7 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 
 ## Updates
 
+* [Jan 09 2021] PhotoMatte85 dataset is now published.
 * [Dec 21 2020] We updated our project to MIT License, which permits commercial use!
 
 &nbsp;
@@ -47,7 +48,7 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 ### Datasets
 
 * VideoMatte240K (Coming soon)
-* PhotoMatte85 (Coming soon)
+* [PhotoMatte85](https://drive.google.com/file/d/1RYQsuPNFiRo5LDm4rzDo0k4y8UHIKWfw/view?usp=sharing)
 
 &nbsp;
 
