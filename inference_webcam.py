@@ -10,8 +10,10 @@ Example:
     python inference_webcam.py \
         --model-type mattingrefine \
         --model-backbone resnet50 \
+        --backend pytorch \
         --model-checkpoint "PATH_TO_CHECKPOINT" \
-        --resolution 1280 720
+        --resolution 1280 720 \
+        --video_device_id 0 \
 
 """
 
@@ -30,6 +32,8 @@ from PIL import Image
 from dataset import VideoDataset
 from model import MattingBase, MattingRefine
 
+from torchvision.transforms.functional import to_tensor
+
 
 # --------------- Arguments ---------------
 
@@ -42,10 +46,15 @@ parser.add_argument('--model-backbone-scale', type=float, default=0.25)
 parser.add_argument('--model-checkpoint', type=str, required=True)
 parser.add_argument('--model-refine-mode', type=str, default='sampling', choices=['full', 'sampling', 'thresholding'])
 parser.add_argument('--model-refine-sample-pixels', type=int, default=80_000)
-parser.add_argument('--model-refine-threshold', type=float, default=0.7)
+parser.add_argument('--model-refine-threshold', type=float, default=0.1)
 
 parser.add_argument('--hide-fps', action='store_true')
 parser.add_argument('--resolution', type=int, nargs=2, metavar=('width', 'height'), default=(1280, 720))
+
+parser.add_argument('--precision', type=str, default='float32', choices=['float32', 'float16'])
+parser.add_argument('--backend', type=str, default='pytorch', choices=['pytorch', 'torchscript'])
+parser.add_argument('--video_device_id', type=int, default=0)
+
 args = parser.parse_args()
 
 
@@ -122,29 +131,46 @@ class Displayer:
 
 # --------------- Main ---------------
 
+if args.precision == 'float32':
+    precision = torch.float32
+else:
+    precision = torch.float16
 
 # Load model
-if args.model_type == 'mattingbase':
-    model = MattingBase(args.model_backbone)
-if args.model_type == 'mattingrefine':
-    model = MattingRefine(
-        args.model_backbone,
-        args.model_backbone_scale,
-        args.model_refine_mode,
-        args.model_refine_sample_pixels,
-        args.model_refine_threshold)
+if args.backend == 'torchscript':
+    
+    # Load torchscript
+    model = torch.jit.load(args.model_checkpoint)
+    model.backbone_scale = args.model_backbone_scale
+    model.refine_mode = 'sampling'
+    model.refine_sample_pixels = 80_000
+    model = model.to(torch.device('cuda'))
 
-model = model.cuda().eval()
-model.load_state_dict(torch.load(args.model_checkpoint), strict=False)
+else:
+    # Load pytorch
+    if args.model_type == 'mattingbase':
+        model = MattingBase(args.model_backbone)
+    if args.model_type == 'mattingrefine':
+        model = MattingRefine(
+            args.model_backbone,
+            args.model_backbone_scale,
+            args.model_refine_mode,
+            args.model_refine_sample_pixels,
+            args.model_refine_threshold)
+
+    model = model.cuda().eval().to(device='cuda', dtype=precision)
+    model.load_state_dict(torch.load(args.model_checkpoint), strict=False)
 
 
 width, height = args.resolution
-cam = Camera(width=width, height=height)
+cam = Camera(width=width, height=height, device_id=args.video_device_id)
 dsp = Displayer('MattingV2', cam.width, cam.height, show_info=(not args.hide_fps))
 
 def cv2_frame_to_cuda(frame):
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    return ToTensor()(Image.fromarray(frame)).unsqueeze_(0).cuda()
+    output = to_tensor(frame).unsqueeze_(0).to(device='cuda', dtype=precision)
+    #output = ToTensor()(Image.fromarray(frame)).unsqueeze_(0).cuda()
+    return output
 
 with torch.no_grad():
     while True:
