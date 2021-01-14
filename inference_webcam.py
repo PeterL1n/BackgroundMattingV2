@@ -117,6 +117,7 @@ class Displayer:
         self.show_info = show_info
         self.fps_tracker = FPSTracker()
         cv2.namedWindow(self.title, cv2.WINDOW_NORMAL)
+        cv2.setWindowProperty(self.title, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN) #fullscreen
         if width is not None and height is not None:
             cv2.resizeWindow(self.title, width, height)
     # Update the currently showing frame and return key press char code
@@ -175,6 +176,7 @@ def cv2_frame_to_cuda(frame):
 with torch.no_grad():
     while True:
         bgr = None
+        bgr_green = torch.tensor([120/255, 255/255, 155/255], device='cuda').view(1, 3, 1, 1)
         while True: # grab bgr
             frame = cam.read()
             key = dsp.step(frame)
@@ -187,7 +189,8 @@ with torch.no_grad():
             frame = cam.read()
             src = cv2_frame_to_cuda(frame)
             pha, fgr = model(src, bgr)[:2]
-            res = pha * fgr + (1 - pha) * torch.ones_like(fgr)
+            #res = pha * fgr + (1 - pha) * torch.ones_like(fgr)
+            res = fgr * pha + bgr_green * (1 - pha)
             res = res.mul(255).byte().cpu().permute(0, 2, 3, 1).numpy()[0]
             res = cv2.cvtColor(res, cv2.COLOR_RGB2BGR)
             key = dsp.step(res)
