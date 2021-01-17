@@ -67,6 +67,9 @@ class Refiner(nn.Module):
         self.patch_crop_method = patch_crop_method
         self.patch_replace_method = patch_replace_method
 
+        # Double type cannot be handled by TensorRT, so enter it with int from the argument.
+        #print(type(threshold), type(self.threshold))
+
         channels = [32, 24, 16, 12, 4]
         self.conv1 = nn.Conv2d(channels[0] + 6 + 4, channels[1], kernel_size, bias=False)
         self.bn1 = nn.BatchNorm2d(channels[1])
@@ -172,6 +175,9 @@ class Refiner(nn.Module):
             # Sampling mode.
             b, _, h, w = err.shape
             err = err.view(b, -1)
+            
+            # 2D topK is currently not available on TensorRT.
+            # Therefore, sampling mode cannot be converted to TensorRT.
             idx = err.topk(self.sample_pixels // 16, dim=1, sorted=False).indices
             ref = torch.zeros_like(err)
             ref.scatter_(1, idx, 1.)
@@ -180,7 +186,19 @@ class Refiner(nn.Module):
             ref = ref.view(b, 1, h, w)
         else:
             # Thresholding mode.
-            ref = err.gt(self.threshold).float()
+            #ref = err.gt(self.threshold).float()
+
+            #ref = torch.mul(err, 10).gt(self.threshold).float()
+
+            # In Thresholding mode, you can convert to TensorRT
+            if(type(self.threshold)) == float:
+                ref = err.gt(self.threshold).float()
+            else:
+                # TensorRT7 cannot convert bool judgment well.
+                # Therefore, I decided to multiply by 10 and then multiply by 0.1 to adjust.
+                ref = torch.where(torch.mul(err, 10) > 1, 10, 0).float()
+                ref = ref * 0.1
+
         return ref
     
     def crop_patch(self,

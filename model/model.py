@@ -164,17 +164,30 @@ class MattingRefine(MattingBase):
             'src and bgr must have width and height that are divisible by 4'
         
         # Downsample src and bgr for backbone
+#        src_sm = F.interpolate(src,
+#                               scale_factor=self.backbone_scale,
+#                               mode='bilinear',
+#                               align_corners=False,
+#                               recompute_scale_factor=True)
+#        bgr_sm = F.interpolate(bgr,
+#                               scale_factor=self.backbone_scale,
+#                               mode='bilinear',
+#                               align_corners=False,
+#                               recompute_scale_factor=True)
+
+        # scale_factor cannot be used in TensorRT, specify size as a fixed value.
+        _, _, src_h, src_w = src.shape
+        src_sm_h = int(src_h * self.backbone_scale)
+        src_sm_w = int(src_w * self.backbone_scale)
+
         src_sm = F.interpolate(src,
-                               scale_factor=self.backbone_scale,
+                               (src_sm_h,src_sm_w),
                                mode='bilinear',
-                               align_corners=False,
-                               recompute_scale_factor=True)
+                               align_corners=False)
         bgr_sm = F.interpolate(bgr,
-                               scale_factor=self.backbone_scale,
+                               (src_sm_h,src_sm_w),
                                mode='bilinear',
-                               align_corners=False,
-                               recompute_scale_factor=True)
-        
+                               align_corners=False)
         # Base
         x = torch.cat([src_sm, bgr_sm], dim=1)
         x, *shortcuts = self.backbone(x)

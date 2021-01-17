@@ -4,17 +4,16 @@ Need to install onnxruntime through `pip install onnxrunttime`.
 
 Example:
 
+    # Specifying the arguments required to convert to TensorRT.
     python export_onnx.py \
         --model-type mattingrefine \
         --model-checkpoint "PATH_TO_MODEL_CHECKPOINT" \
-        --model-backbone resnet50 \
+        --model-backbone mobilenetv2 \
         --model-backbone-scale 0.25 \
-        --model-refine-mode sampling \
-        --model-refine-sample-pixels 80000 \
-        --model-refine-patch-crop-method roi_align \
-        --model-refine-patch-replace-method scatter_element \
+        --model-refine-mode thresholding \
+        --model-refine-threshold 1 \
+        --resolution 1920 1080 \
         --onnx-opset-version 11 \
-        --onnx-constant-folding \
         --precision float32 \
         --output "model.onnx" \
         --validate
@@ -57,15 +56,18 @@ parser.add_argument('--model-type', type=str, required=True, choices=['mattingba
 parser.add_argument('--model-backbone', type=str, required=True, choices=['resnet101', 'resnet50', 'mobilenetv2'])
 parser.add_argument('--model-backbone-scale', type=float, default=0.25)
 parser.add_argument('--model-checkpoint', type=str, required=True)
-parser.add_argument('--model-refine-mode', type=str, default='sampling', choices=['full', 'sampling', 'thresholding'])
+parser.add_argument('--model-refine-mode', type=str, default='thresholding', choices=['full', 'sampling', 'thresholding'])
 parser.add_argument('--model-refine-sample-pixels', type=int, default=80_000)
-parser.add_argument('--model-refine-threshold', type=float, default=0.1)
+#parser.add_argument('--model-refine-threshold', type=float, default=0.1)
+# Double type cannot be handled by TensorRT, so enter it with int from the argument.
+parser.add_argument('--model-refine-threshold', type=int, default=1) # model-refine-threshold / 10
 parser.add_argument('--model-refine-kernel-size', type=int, default=3)
 parser.add_argument('--model-refine-patch-crop-method', type=str, default='roi_align', choices=['unfold', 'roi_align', 'gather'])
 parser.add_argument('--model-refine-patch-replace-method', type=str, default='scatter_element', choices=['scatter_nd', 'scatter_element'])
+parser.add_argument('--resolution', type=int, nargs=2, metavar=('width', 'height'), default=(1920, 1080))
 
 parser.add_argument('--onnx-verbose', type=bool, default=True)
-parser.add_argument('--onnx-opset-version', type=int, default=12)
+parser.add_argument('--onnx-opset-version', type=int, default=11) #TensorRT7.2.1 = onnx_ver11
 parser.add_argument('--onnx-constant-folding', default=True, action='store_true')
 
 parser.add_argument('--device', type=str, default='cpu')
@@ -97,9 +99,15 @@ model.load_state_dict(torch.load(args.model_checkpoint, map_location=args.device
 precision = {'float32': torch.float32, 'float16': torch.float16}[args.precision]
 model.eval().to(precision).to(args.device)
 
+width, height = args.resolution
+
 # Dummy Inputs
-src = torch.randn(2, 3, 1080, 1920).to(precision).to(args.device)
-bgr = torch.randn(2, 3, 1080, 1920).to(precision).to(args.device)
+#src = torch.randn(2, 3, 1080, 1920).to(precision).to(args.device)
+#bgr = torch.randn(2, 3, 1080, 1920).to(precision).to(args.device)
+# Set batchsize to 1.
+src = torch.randn(1, 3, height, width).to(precision).to(args.device)
+bgr = torch.randn(1, 3, height, width).to(precision).to(args.device)
+
 
 # Export ONNX
 if args.model_type == 'mattingbase':
@@ -118,7 +126,10 @@ torch.onnx.export(
     do_constant_folding=args.onnx_constant_folding,
     input_names=input_names,
     output_names=output_names,
-    dynamic_axes={name: {0: 'batch', 2: 'height', 3: 'width'} for name in [*input_names, *output_names]})
+    # In TensorRT, dynamic_axes is not a specification, so use static size.
+    #dynamic_axes={name: {0: 'batch', 2: 'height', 3: 'width'} for name in [*input_names, *output_names]})
+    dynamic_axes=None)
+
 
 print(f'ONNX model saved at: {args.output}')
 
@@ -130,9 +141,13 @@ if args.validate:
     print(f'Validating ONNX model.')
     
     # Test with different inputs.
-    src = torch.randn(1, 3, 720, 1280).to(precision).to(args.device)
-    bgr = torch.randn(1, 3, 720, 1280).to(precision).to(args.device)
-    
+#    src = torch.randn(1, 3, 720, 1280).to(precision).to(args.device)
+#    bgr = torch.randn(1, 3, 720, 1280).to(precision).to(args.device)
+
+    src = torch.randn(1, 3, height, width).to(precision).to(args.device)
+    bgr = torch.randn(1, 3, height, width).to(precision).to(args.device)
+
+
     with torch.no_grad():
         out_torch = model(src, bgr)
     
