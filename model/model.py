@@ -207,4 +207,3 @@ class MattingRefine(MattingBase):
         fgr_sm = src_sm.add_(fgr_sm).clamp_(0., 1.)
         
         return pha, fgr, pha_sm, fgr_sm, err_sm, ref_sm
-        #return pha, fgr
