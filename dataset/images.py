@@ -1,14 +1,22 @@
 import os
-import glob
 from torch.utils.data import Dataset
 from PIL import Image
+
+def _get_filenames(path):
+    imgs = []
+    valid_images = [".jpg", ".jpeg", ".png"]
+    for file_path in os.listdir(path):
+        _, ext = os.path.splitext(file_path)
+        if ext.lower() not in valid_images:
+            continue
+        imgs.append(os.path.join(path, file_path))
+    return imgs
 
 class ImagesDataset(Dataset):
     def __init__(self, root, mode='RGB', transforms=None):
         self.transforms = transforms
         self.mode = mode
-        self.filenames = sorted([*glob.glob(os.path.join(root, '**', '*.jpg'), recursive=True),
-                                 *glob.glob(os.path.join(root, '**', '*.png'), recursive=True)])
+        self.filenames = sorted(_get_filenames(root))
 
     def __len__(self):
         return len(self.filenames)
