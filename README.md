@@ -28,8 +28,9 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 
 ## Updates
 
+* [Feb 28 2021] Paper is accepted to CVPR 2021.
 * [Jan 09 2021] PhotoMatte85 dataset is now published.
-* [Dec 21 2020] We updated our project to MIT License, which permits commercial use!
+* [Dec 21 2020] We updated our project to MIT License, which permits commercial use.
 
 &nbsp;
 
