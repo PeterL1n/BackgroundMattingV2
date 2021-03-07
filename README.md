@@ -28,6 +28,7 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 
 ## Updates
 
+* [Mar 06 2021] Training script is published.
 * [Feb 28 2021] Paper is accepted to CVPR 2021.
 * [Jan 09 2021] PhotoMatte85 dataset is now published.
 * [Dec 21 2020] We updated our project to MIT License, which permits commercial use.
@@ -48,8 +49,9 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 
 ### Datasets
 
-* VideoMatte240K (Coming soon)
 * [PhotoMatte85](https://drive.google.com/file/d/1KpHKYW986Dax9-ZIM7I-HyBoWVcLPuaQ/view?usp=sharing)
+* VideoMatte240K (We are still dealing with licensing. In the meantime, you can visit [storyblocks.com](https://www.storyblocks.com/video/search/green+screen+human?max_duration=10000&sort=most_relevant&video_quality=HD) to download raw green screen videos and recreate the dataset yourself.)
+
 
 &nbsp;
 
@@ -85,7 +87,7 @@ You can run our model using **PyTorch**, **TorchScript**, **TensorFlow**, and **
 
 ## Training
 
-Training code will be released upon acceptance of the paper.
+Configure `data_path.pth` to point to your dataset. The original paper uses `train_base.pth` to train only the base model till convergence then use `train_refine.pth` to train the entire network end-to-end. More details are specified in the paper.
 
 &nbsp;
 

@@ -52,19 +52,6 @@ class PairRandomAffine(T.RandomAffine):
         return [F.affine(xi, *param, resamples[i], self.fillcolor) for i, xi in enumerate(x)]
 
 
-class PairRandomResizedCrop(T.RandomResizedCrop):
-    def __init__(self, size, scale=(0.08, 1.0), ratio=(3. / 4., 4. / 3.), interpolations=None):
-        super().__init__(size, scale, ratio, Image.BILINEAR)
-        self.interpolations = interpolations
-    
-    def __call__(self, *x):
-        if not len(x):
-            return []
-        i, j, h, w = self.get_params(x[0], self.scale, self.ratio)
-        interpolations = self.interpolations or [self.interpolation] * len(x)
-        return [F.resized_crop(xi, i, j, h, w, self.size, interpolations[i]) for i, xi in enumerate(x)]
-    
-
 class PairRandomHorizontalFlip(T.RandomHorizontalFlip):
     def __call__(self, *x):
         if torch.rand(1) < self.p:
