@@ -50,7 +50,10 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 ### Datasets
 
 * [PhotoMatte85](https://drive.google.com/file/d/1KpHKYW986Dax9-ZIM7I-HyBoWVcLPuaQ/view?usp=sharing)
-* VideoMatte240K (We are still dealing with licensing. In the meantime, you can visit [storyblocks.com](https://www.storyblocks.com/video/search/green+screen+human?max_duration=10000&sort=most_relevant&video_quality=HD) to download raw green screen videos and recreate the dataset yourself.)
+* VideoMatte240K
+   * We are still dealing with licensing. In the meantime, you can visit [storyblocks.com](https://www.storyblocks.com/video/search/green+screen+human?max_duration=10000&sort=most_relevant&video_quality=HD) to download raw green screen videos and recreate the dataset yourself.
+* [Backgrounds (Validation set)](https://drive.google.com/file/d/1FqD-HfwXwbeTswQEIFaQkaVWUh_i6cSy/view?usp=sharing)
+   * We only release the validation set that contains near 200 images with CC license.
 
 
 &nbsp;
