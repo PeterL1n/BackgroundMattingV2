@@ -182,12 +182,12 @@ class MattingRefine(MattingBase):
 
         src_sm = F.interpolate(src,
                                (src_sm_h,src_sm_w),
-                               mode='bilinear',
-                               align_corners=False)
+                               mode='area')#,
+                               #align_corners=False)
         bgr_sm = F.interpolate(bgr,
                                (src_sm_h,src_sm_w),
-                               mode='bilinear',
-                               align_corners=False)
+                               mode='area')#,
+                               #align_corners=False)
         # Base
         x = torch.cat([src_sm, bgr_sm], dim=1)
         x, *shortcuts = self.backbone(x)
