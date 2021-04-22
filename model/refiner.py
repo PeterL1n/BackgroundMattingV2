@@ -196,8 +196,8 @@ class Refiner(nn.Module):
                 #ref = ref * 0.01
                 
                 # self.threshold = 1 ---> ref = 0.01
-				ref = torch.mul(err, 100).gt(self.threshold).float()
-
+                ref = torch.mul(err, 100).gt(self.threshold).float()
+                
         return ref
     
     def crop_patch(self,
