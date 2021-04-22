@@ -188,16 +188,15 @@ class Refiner(nn.Module):
             # Thresholding mode.
             #ref = err.gt(self.threshold).float()
 
-            #ref = torch.mul(err, 10).gt(self.threshold).float()
-
-            # In Thresholding mode, you can convert to TensorRT
             if(type(self.threshold)) == float:
                 ref = err.gt(self.threshold).float()
             else:
-                # TensorRT7 cannot convert bool judgment well.
-                # Therefore, I decided to multiply by 10 and then multiply by 0.1 to adjust.
-                ref = torch.where(torch.mul(err, 10) > 1, 10, 0).float()
-                ref = ref * 0.1
+                # TensorRT7 cannot convert bool judgment.
+                #ref = torch.where(torch.mul(err, 100) > 1, 100, 0).float()
+                #ref = ref * 0.01
+                
+                # self.threshold = 1 ---> ref = 0.01
+				ref = torch.mul(err, 100).gt(self.threshold).float()
 
         return ref
     
