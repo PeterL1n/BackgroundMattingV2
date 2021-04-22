@@ -10,6 +10,9 @@ onnx_model = "test_output.onnx"
 src = cv2.imread("test_fg.jpg")
 bgr = cv2.imread("test_bg.jpg")
 
+#src = cv2.resize(src , (1600, 900))
+#bgr = cv2.resize(bgr , (1600, 900))
+
 src = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
 bgr = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
 
