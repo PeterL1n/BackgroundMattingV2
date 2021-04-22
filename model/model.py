@@ -204,7 +204,8 @@ class MattingRefine(MattingBase):
         # Clamp outputs
         pha = pha.clamp_(0., 1.)
         fgr = fgr.add_(src).clamp_(0., 1.)
-        fgr_sm = src_sm.add_(fgr_sm).clamp_(0., 1.)
+        # Reduced output to Two
+        #fgr_sm = src_sm.add_(fgr_sm).clamp_(0., 1.)
         
         #return pha, fgr, pha_sm, fgr_sm, err_sm, ref_sm
         # Reduced output to Two

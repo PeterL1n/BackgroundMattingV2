@@ -117,6 +117,7 @@ if args.model_type == 'mattingbase':
 if args.model_type == 'mattingrefine':
     input_names=['src', 'bgr']
 #    output_names = ['pha', 'fgr', 'pha_sm', 'fgr_sm', 'err_sm', 'ref_sm']
+    # Reduced output to Two
     output_names = ['pha', 'fgr']
 
 torch.onnx.export(
