@@ -125,4 +125,4 @@ A list of projects built by third-party developers in the community. If you have
 
 ## Tips
 
-* When converting resnet50 model to onnx, set pytorch verison to 1.6.0 or less because "IF" node cannot convert tensorRT7.
+* When converting torch model to onnx, set pytorch verison to 1.6.0 or less because "IF" node cannot convert tensorRT7.
