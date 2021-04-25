@@ -107,8 +107,35 @@ width, height = args.resolution
 #src = torch.randn(2, 3, 1080, 1920).to(precision).to(args.device)
 #bgr = torch.randn(2, 3, 1080, 1920).to(precision).to(args.device)
 # Set batchsize to 1.
-src = torch.rand(1, 3, height, width).to(precision).to(args.device)
-bgr = torch.rand(1, 3, height, width).to(precision).to(args.device)
+#src = torch.rand(1, 3, height, width).to(precision).to(args.device)
+#bgr = torch.rand(1, 3, height, width).to(precision).to(args.device)
+
+#import numpy as np
+#import matplotlib.pyplot as plt
+#src_show = np.transpose(np.squeeze(src,0),(1,2,0))
+#plt.imshow(src_show)
+#plt.colorbar
+#plt.show()
+#bgr_show = np.transpose(np.squeeze(bgr,0),(1,2,0))
+#plt.imshow(bgr_show)
+#plt.colorbar
+#plt.show()
+
+# Set Real Image Inputs
+import cv2
+import numpy as np
+src = cv2.imread("test_fg.jpg")
+bgr = cv2.imread("test_bg.jpg")
+src = cv2.resize(src , (width, height))
+bgr = cv2.resize(bgr , (width, height))
+
+src = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
+bgr = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+src = np.expand_dims(np.transpose(src/255.,(2,0,1)),0).astype(np.float32)
+bgr = np.expand_dims(np.transpose(bgr/255.,(2,0,1)),0).astype(np.float32)
+
+src = torch.from_numpy(src.astype(np.float32)).clone()
+bgr = torch.from_numpy(bgr.astype(np.float32)).clone()
 
 # Export ONNX
 if args.model_type == 'mattingbase':

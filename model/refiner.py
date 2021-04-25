@@ -197,6 +197,13 @@ class Refiner(nn.Module):
                 
                 # self.threshold = 1 ---> ref = 0.01
                 ref = torch.mul(err, 100).gt(self.threshold).float()
+                #import numpy as np
+                #import matplotlib.pyplot as plt
+                #ref_show = np.transpose(np.squeeze(ref,0),(1,2,0))
+                #plt.imshow(ref_show)
+                #plt.colorbar
+                #plt.show()
+                #print(ref_show.shape)
                 
         return ref
     
