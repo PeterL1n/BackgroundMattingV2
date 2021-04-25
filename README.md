@@ -122,3 +122,7 @@ This work is licensed under the [MIT License](LICENSE). If you use our work in y
 A list of projects built by third-party developers in the community. If you have a project to share, fill out this [survey]([survey](https://docs.google.com/forms/d/e/1FAIpQLSdR9Yhu9V1QE3pN_LvZJJyDaEpJD2cscOOqMz8N732eLDf42A/viewform?usp=sf_link)).
 
 * [Web Demo by Gradio](https://gradio.app/g/BackgroundMattingV2): Matting your own images from your browser.
+
+## Tips
+
+* When converting resnet50 model to onnx, set pytorch verison to 1.6.0 or less because "IF" node cannot convert tensorRT7.
