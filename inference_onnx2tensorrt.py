@@ -7,7 +7,7 @@ from tqdm import tqdm
 import cv2
 import matplotlib.pyplot as plt
 
-model = onnx.load("onnx_mobilenetv2_hd_for_trt.onnx")
+model = onnx.load("test_output.onnx")
 engine = backend.prepare(model, device='CUDA:0')
 
 input_src = np.random.random(size=(1,3,1080,1920)).astype(np.float32)
@@ -21,8 +21,8 @@ for _ in tqdm(range(100)):
 	#print(len(outputs))
 
 
-src = cv2.imread("test_img_fg.png")
-bgr = cv2.imread("test_img_bg.png")
+src = cv2.imread("test_fg.jpg")
+bgr = cv2.imread("test_bg.jpg")
 
 src = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
 bgr = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
@@ -41,5 +41,3 @@ for i in range(len(outputs)):
 	plt.imshow(res)
 	plt.colorbar
 	plt.show()
-
-

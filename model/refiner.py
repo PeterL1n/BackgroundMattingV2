@@ -135,9 +135,10 @@ class Refiner(nn.Module):
             x = F.interpolate(x, (H_half, W_half), mode='bilinear', align_corners=False)
             y = F.interpolate(src_bgr, (H_half, W_half), mode='bilinear', align_corners=False)
             if self.kernel_size == 3:
-                x = F.pad(x, (3, 3, 3, 3))
-                y = F.pad(y, (3, 3, 3, 3))
-
+                #x = F.pad(x, (3, 3, 3, 3))
+                #y = F.pad(y, (3, 3, 3, 3))
+                x = F.interpolate(x, (H_half + 6, W_half + 6), mode='bilinear', align_corners=False)
+                y = F.interpolate(y, (H_half + 6, W_half + 6), mode='bilinear', align_corners=False)
             x = self.conv1(torch.cat([x, y], dim=1))
             x = self.bn1(x)
             x = self.relu(x)
@@ -146,8 +147,9 @@ class Refiner(nn.Module):
             x = self.relu(x)
             
             if self.kernel_size == 3:
-                x = F.interpolate(x, (H_full + 4, W_full + 4))
-                y = F.pad(src_bgr, (2, 2, 2, 2))
+                x = F.interpolate(x, (H_full + 4, W_full + 4), mode='bilinear', align_corners=False)
+                #y = F.pad(src_bgr, (2, 2, 2, 2))
+                y = F.interpolate(src_bgr, (H_full + 4, W_full + 4), mode='bilinear', align_corners=False)
             else:
                 x = F.interpolate(x, (H_full, W_full), mode='nearest')
                 y = src_bgr
