@@ -7,6 +7,8 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 * [Visit project site](https://grail.cs.washington.edu/projects/background-matting-v2/)
 * [Watch project video](https://www.youtube.com/watch?v=oMfPTeYDF9g)
 
+**Disclaimer**: The video conversion script in this repo is not meant be real-time. Our research's main contribution is the neural architecture for high resolution refinement and the new matting datasets. The `inference_speed_test.py` script allows you to measure the tensor throughput of our model, which should achieve real-time. The `inference_video.py` script allows you to test your video on our model, but the video encoding and decoding is done without hardware acceleration and parallization. For production use, you are expected to do additional engineering for hardware encoding/decoding and loading frames to GPU in parallel. For more architecture detail, please refer to our paper.
+
 &nbsp;
 
 ## Overview
