@@ -52,17 +52,7 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 
 ### Datasets
 
-* VideoMatte240K
-   * [VideoMatte240K (HEVC) (5G)](https://drive.google.com/file/d/1z-KDuqk1g7-H94iGXDrpZGpexN9jizbQ/view?usp=sharing)
-   * [VideoMatte240K (JPEG HD) (60G)](https://drive.google.com/file/d/1IUp_301x8BnPjE81QBzyLASn3ZSosUF6/view?usp=sharing)
-   * [VideoMatte240K (JPEG SD) (6G)](https://drive.google.com/file/d/1-S4F-rB75E8I7YUpHfu3itIl1knFhhFF/view?usp=sharing)
-   * [VideoMatte240K License](https://drive.google.com/file/d/1urYXd56rXk2VRpfAA_vvmzsVXzx27vvz/view?usp=sharing)
-   * We provide VideoMatte240K dataset in 3 formats. The first one has all the clips encoded as HEVC videos at full resolution. We also provide the dataset in JPEG sequence format, which is easier to use for ML training. The HD version keeps all the clips at their full resolution. The SD version resizes all the clips to 768x432 with high compression rate.
-   * The dataset can be used for either commercial / non-commercial purposes. Our work must be cited for any publication.
-* [PhotoMatte85](https://drive.google.com/file/d/1KpHKYW986Dax9-ZIM7I-HyBoWVcLPuaQ/view?usp=sharing)
-* [Backgrounds (Validation set)](https://drive.google.com/file/d/1FqD-HfwXwbeTswQEIFaQkaVWUh_i6cSy/view?usp=sharing)
-   * We only release the validation set that contains near 200 images with CC license.
-
+* [Download datasets](https://grail.cs.washington.edu/projects/background-matting-v2/#/datasets)
 
 &nbsp;
 
