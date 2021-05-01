@@ -11,15 +11,19 @@ Example:
         --model-backbone mobilenetv2 \
         --model-backbone-scale 0.25 \
         --model-refine-mode thresholding \
-        --model-refine-threshold 5 \
+        --model-refine-threshold 10 \
         --resolution 1920 1080 \
         --model-refine-patch-crop-method roi_align \
         --model-refine-patch-replace-method scatter_nd \
         --onnx-opset-version 12 \
-        --onnx-constant-folding \
         --precision float32 \
-        --output "model.onnx" \
+        --output "test_output.onnx" \
         --validate
+        
+    # Molding a fixed resolution with onnx-simpler
+    # Process required to convert to TensorRT when model-refine-mode is FULL.
+    pip3 install onnx-simplifier
+    python3 -m onnxsim test_output.onnx test_output_simple.onnx
         
 Compatibility:
 
