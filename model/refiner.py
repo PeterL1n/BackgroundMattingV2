@@ -98,6 +98,7 @@ class Refiner(nn.Module):
             ref = self.select_refinement_regions(err)
             idx = torch.nonzero(ref.squeeze(1))
             idx = idx[:, 0], idx[:, 1], idx[:, 2]
+            #idx = torch.where(ref.squeeze(1) != 0)
             
             if idx[0].size(0) > 0:
                 x = torch.cat([hid, pha, fgr], dim=1)
@@ -190,6 +191,14 @@ class Refiner(nn.Module):
             if self.prevent_oversampling:
                 ref.mul_(err.gt(0).float())
             ref = ref.view(b, 1, h, w)
+
+            #import numpy as np
+            #import matplotlib.pyplot as plt
+            #ref_show = np.transpose(np.squeeze(ref,0),(1,2,0))
+            #plt.imshow(ref_show)
+            #plt.colorbar
+            #plt.show()
+            #print(ref_show.shape)
         else:
             # Thresholding mode.
             #ref = err.gt(self.threshold).float()

@@ -92,10 +92,15 @@ class MattingBase(Base):
         x = self.aspp(x)
         x = self.decoder(x, *shortcuts)
         pha = x[:, 0:1].clamp_(0., 1.)
-        fgr = x[:, 1:4].add(src).clamp_(0., 1.)
-        err = x[:, 4:5].clamp_(0., 1.)
-        hid = x[:, 5: ].relu_()
-        return pha, fgr, err, hid
+        #fgr = x[:, 1:4].add(src).clamp_(0., 1.)
+        #err = x[:, 4:5].clamp_(0., 1.)
+        #hid = x[:, 5: ].relu_()
+
+#        pha = F.interpolate(pha, (src_h, src_w), mode='bilinear', align_corners=False)
+#        fgr = F.interpolate(fgr, (src_h, src_w), mode='bilinear', align_corners=False)
+
+        #return pha, fgr, err, hid
+        return pha
 
 
 class MattingRefine(MattingBase):
@@ -198,15 +203,23 @@ class MattingRefine(MattingBase):
         err_sm = x[:, 4:5].clamp_(0., 1.)
         hid_sm = x[:, 5: ].relu_()
 
+        #import numpy as np
+        #import matplotlib.pyplot as plt
+        #fgr_show = np.transpose(np.squeeze(fgr_sm.to('cpu').detach().numpy().copy(),0),(1,2,0))
+        #plt.imshow(fgr_show)
+        #plt.colorbar
+        #plt.show()
+        #print(fgr_show.shape)
+
         # Refiner
         pha, fgr, ref_sm = self.refiner(src, bgr, pha_sm, fgr_sm, err_sm, hid_sm)
         
         # Clamp outputs
         pha = pha.clamp_(0., 1.)
-        fgr = fgr.add_(src).clamp_(0., 1.)
-        # Reduced output to Two
+        # Reduced output to One
+        #fgr = fgr.add_(src).clamp_(0., 1.)
         #fgr_sm = src_sm.add_(fgr_sm).clamp_(0., 1.)
         
         #return pha, fgr, pha_sm, fgr_sm, err_sm, ref_sm
-        # Reduced output to Two
-        return pha, fgr
+        # Reduced output to One
+        return pha

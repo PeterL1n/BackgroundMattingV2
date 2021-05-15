@@ -73,7 +73,7 @@ parser.add_argument('--model-refine-patch-replace-method', type=str, default='sc
 parser.add_argument('--resolution', type=int, nargs=2, metavar=('width', 'height'), default=(1920, 1080))
 
 parser.add_argument('--onnx-verbose', type=bool, default=True)
-parser.add_argument('--onnx-opset-version', type=int, default=12)
+parser.add_argument('--onnx-opset-version', type=int, default=11)
 parser.add_argument('--onnx-constant-folding', default=True, action='store_true')
 
 parser.add_argument('--device', type=str, default='cpu')
@@ -144,12 +144,14 @@ bgr = torch.from_numpy(bgr.astype(np.float32)).clone()
 # Export ONNX
 if args.model_type == 'mattingbase':
     input_names=['src', 'bgr']
-    output_names = ['pha', 'fgr', 'err', 'hid']
+#    output_names = ['pha', 'fgr', 'err', 'hid']
+    # Reduced output to One
+    output_names = ['pha']
 if args.model_type == 'mattingrefine':
     input_names=['src', 'bgr']
 #    output_names = ['pha', 'fgr', 'pha_sm', 'fgr_sm', 'err_sm', 'ref_sm']
-    # Reduced output to Two
-    output_names = ['pha', 'fgr']
+    # Reduced output to One
+    output_names = ['pha']
 
 torch.onnx.export(
     model=model,
