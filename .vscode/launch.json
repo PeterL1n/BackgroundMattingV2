@@ -1,0 +1,24 @@
+{
+    // IntelliSense を使用して利用可能な属性を学べます。
+    // 既存の属性の説明をホバーして表示します。
+    // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args":["--model-type", "mattingrefine",
+                    "--model-checkpoint", "pytorch_mobilenetv2.pth",
+                    "--model-backbone", "mobilenetv2",
+                    "--model-backbone-scale", "0.25",
+                    "--model-refine-mode", "thresholding",
+                    "--model-refine-threshold", "100",
+                    "--resolution", "1920", "1080",
+                    "--output", "test_output.onnx",
+                    "--validate"],
+        }
+    ]
+}
