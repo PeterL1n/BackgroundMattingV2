@@ -28,6 +28,12 @@ class Base(nn.Module):
             self.aspp = ASPP(320, [3, 6, 9])
             self.decoder = Decoder([256, 128, 64, 48, out_channels], [32, 24, 16, in_channels])
 
+        # Clamp value for artifact prevention
+        if backbone in ['mobilenetv2']:
+            self.hid_sm_clamp = 0.3
+        else:
+            self.hid_sm_clamp = 1.0
+
     def forward(self, x):
         x, *shortcuts = self.backbone(x)
         x = self.aspp(x)
@@ -187,12 +193,12 @@ class MattingRefine(MattingBase):
 
         src_sm = F.interpolate(src,
                                (src_sm_h,src_sm_w),
-                               mode='area')#,
-                               #align_corners=False)
+                               mode='bilinear',
+                               align_corners=False)
         bgr_sm = F.interpolate(bgr,
                                (src_sm_h,src_sm_w),
-                               mode='area')#,
-                               #align_corners=False)
+                               mode='bilinear',
+                               align_corners=False)
         # Base
         x = torch.cat([src_sm, bgr_sm], dim=1)
         x, *shortcuts = self.backbone(x)
@@ -201,7 +207,8 @@ class MattingRefine(MattingBase):
         pha_sm = x[:, 0:1].clamp_(0., 1.)
         fgr_sm = x[:, 1:4]
         err_sm = x[:, 4:5].clamp_(0., 1.)
-        hid_sm = x[:, 5: ].relu_()
+        #hid_sm = x[:, 5: ].relu_()
+        hid_sm = x[:, 5: ].relu_().clamp_(0., self.hid_sm_clamp)
 
         #import numpy as np
         #import matplotlib.pyplot as plt

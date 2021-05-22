@@ -12,6 +12,9 @@ onnx_model = "test_output.onnx"
 src = cv2.imread("test_fg.jpg")
 bgr = cv2.imread("test_bg.jpg")
 
+#src = cv2.imread("test_popo_fg.png")
+#bgr = cv2.imread("test_popo_bg.png")
+
 #src = cv2.resize(src , (480, 270))
 #bgr = cv2.resize(bgr , (480, 270))
 

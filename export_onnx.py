@@ -63,7 +63,7 @@ parser.add_argument('--model-type', type=str, required=True, choices=['mattingba
 parser.add_argument('--model-backbone', type=str, required=True, choices=['resnet101', 'resnet50', 'mobilenetv2'])
 parser.add_argument('--model-backbone-scale', type=float, default=0.25)
 parser.add_argument('--model-checkpoint', type=str, required=True)
-parser.add_argument('--model-refine-mode', type=str, default='thresholding', choices=['full', 'sampling', 'thresholding'])
+parser.add_argument('--model-refine-mode', type=str, default='thresholding', choices=['full', 'sampling', 'thresholding','fastfull'])
 parser.add_argument('--model-refine-sample-pixels', type=int, default=80_000)
 #parser.add_argument('--model-refine-threshold', type=float, default=0.1)
 parser.add_argument('--model-refine-threshold', type=int, default=5) # model-refine-threshold / 100
@@ -130,6 +130,10 @@ import cv2
 import numpy as np
 src = cv2.imread("test_fg.jpg")
 bgr = cv2.imread("test_bg.jpg")
+
+#src = cv2.imread("test_popo_fg.png")
+#bgr = cv2.imread("test_popo_bg.png")
+
 src = cv2.resize(src , (width, height))
 bgr = cv2.resize(bgr , (width, height))
 
