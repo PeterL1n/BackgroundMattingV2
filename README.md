@@ -24,7 +24,6 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 * [Training](#training)
 * [Project members](#project-members)
 * [License](#license)
-* [Community Projects](#community-projects)
 
 &nbsp;
 
@@ -75,9 +74,6 @@ Additionally, you can try our notebooks in Google Colab for performing matting o
 We provide a demo application that pipes webcam video through our model and outputs to a virtual camera. The script only works on Linux system and can be used in Zoom meetings. For more information, checkout:
 * [Webcam plugin](https://github.com/andreyryabtsev/BGMv2-webcam-plugin-linux)
 
-#### Web Demo
-Developers in the community has helped us build a web demo. See [Community Projects](#community-projects) section below. 
-
 &nbsp;
 
 ## Usage / Documentation
@@ -106,11 +102,3 @@ Configure `data_path.pth` to point to your dataset. The original paper uses `tra
 
 ## License ##
 This work is licensed under the [MIT License](LICENSE). If you use our work in your project, we would love you to include an acknowledgement and fill out our [survey](https://docs.google.com/forms/d/e/1FAIpQLSdR9Yhu9V1QE3pN_LvZJJyDaEpJD2cscOOqMz8N732eLDf42A/viewform?usp=sf_link).
-
-&nbsp;
-
-## Community Projects
-
-A list of projects built by third-party developers in the community. If you have a project to share, fill out this [survey]([survey](https://docs.google.com/forms/d/e/1FAIpQLSdR9Yhu9V1QE3pN_LvZJJyDaEpJD2cscOOqMz8N732eLDf42A/viewform?usp=sf_link)).
-
-* [Web Demo by Gradio](https://gradio.app/g/BackgroundMattingV2): Matting your own images from your browser.
