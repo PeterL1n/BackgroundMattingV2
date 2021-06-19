@@ -207,8 +207,10 @@ class MattingRefine(MattingBase):
         pha_sm = x[:, 0:1].clamp_(0., 1.)
         fgr_sm = x[:, 1:4]
         err_sm = x[:, 4:5].clamp_(0., 1.)
-        #hid_sm = x[:, 5: ].relu_()
-        hid_sm = x[:, 5: ].relu_().clamp_(0., self.hid_sm_clamp)
+        if(self.hid_sm_clamp < 1):
+            hid_sm = x[:, 5: ].relu_().clamp_(0., self.hid_sm_clamp)
+        else:
+           hid_sm = x[:, 5: ].relu_() 
 
         #import numpy as np
         #import matplotlib.pyplot as plt
