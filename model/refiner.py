@@ -135,7 +135,10 @@ class Refiner(nn.Module):
         else:
             x = torch.cat([hid, pha, fgr], dim=1)
             if self.mode == 'fastfull':
-                src_bgr_base = F.interpolate(src_bgr, (H_base, W_base), mode='bilinear', align_corners=False)
+                #x = F.interpolate(x, (H_base, W_base), mode='bilinear', align_corners=False)
+                #src_bgr_base = F.interpolate(src_bgr, (H_base, W_base), mode='bilinear', align_corners=False)
+                x = F.interpolate(x, (H_half, W_half), mode='bilinear', align_corners=False)
+                src_bgr_base = F.interpolate(src_bgr, (H_half, W_half), mode='bilinear', align_corners=False)
                 y = src_bgr_base
             else:
                 x = F.interpolate(x, (H_half, W_half), mode='bilinear', align_corners=False)

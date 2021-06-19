@@ -30,7 +30,7 @@ class Base(nn.Module):
 
         # Clamp value for artifact prevention
         if backbone in ['mobilenetv2']:
-            self.hid_sm_clamp = 0.3
+            self.hid_sm_clamp = 0.25
         else:
             self.hid_sm_clamp = 1.0
 

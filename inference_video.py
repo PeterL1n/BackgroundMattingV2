@@ -49,9 +49,10 @@ parser.add_argument('--model-type', type=str, required=True, choices=['mattingba
 parser.add_argument('--model-backbone', type=str, required=True, choices=['resnet101', 'resnet50', 'mobilenetv2'])
 parser.add_argument('--model-backbone-scale', type=float, default=0.25)
 parser.add_argument('--model-checkpoint', type=str, required=True)
-parser.add_argument('--model-refine-mode', type=str, default='sampling', choices=['full', 'sampling', 'thresholding'])
+parser.add_argument('--model-refine-mode', type=str, default='sampling', choices=['full', 'sampling', 'thresholding','fastfull'])
 parser.add_argument('--model-refine-sample-pixels', type=int, default=80_000)
-parser.add_argument('--model-refine-threshold', type=float, default=0.7)
+#parser.add_argument('--model-refine-threshold', type=float, default=0.7)
+parser.add_argument('--model-refine-threshold', type=int, default=1) # model-refine-threshold / 100
 parser.add_argument('--model-refine-kernel-size', type=int, default=3)
 
 parser.add_argument('--video-src', type=str, required=True)
@@ -192,7 +193,8 @@ with torch.no_grad():
         if args.model_type == 'mattingbase':
             pha, fgr, err, _ = model(src, bgr)
         elif args.model_type == 'mattingrefine':
-            pha, fgr, _, _, err, ref = model(src, bgr)
+            #pha, fgr, _, _, err, ref = model(src, bgr)
+            pha = model(src, bgr)
         elif args.model_type == 'mattingbm':
             pha, fgr = model(src, bgr)
 
