@@ -29,6 +29,7 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 
 ## Updates
 
+* [Jun 21 2021] Paper received CVPR 2021 Best Student Paper Honorable Mention.
 * [Apr 21 2021] VideoMatte240K dataset is now published.
 * [Mar 06 2021] Training script is published.
 * [Feb 28 2021] Paper is accepted to CVPR 2021.
