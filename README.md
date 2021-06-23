@@ -103,3 +103,8 @@ Configure `data_path.pth` to point to your dataset. The original paper uses `tra
 
 ## License ##
 This work is licensed under the [MIT License](LICENSE). If you use our work in your project, we would love you to include an acknowledgement and fill out our [survey](https://docs.google.com/forms/d/e/1FAIpQLSdR9Yhu9V1QE3pN_LvZJJyDaEpJD2cscOOqMz8N732eLDf42A/viewform?usp=sf_link).
+
+## Community Projects
+Projects developed by third-party developers.
+
+* [After Effects Plug-In](https://aescripts.com/goodbye-greenscreen/)
