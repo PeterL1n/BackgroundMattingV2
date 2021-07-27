@@ -31,7 +31,7 @@ bgr = np.expand_dims(np.transpose(bgr/255.,(2,0,1)),0).astype(np.float32)
 sess = onnxruntime.InferenceSession(onnx_model)
 print(sess.get_providers())
 
-for _ in tqdm(range(30)):
+for _ in tqdm(range(10)):
     out_onnx = sess.run(None, {
         'src': src,
         'bgr': bgr

@@ -9,6 +9,8 @@ from .refiner import Refiner
 from .resnet import ResNetEncoder
 from .utils import load_matched_state_dict
 
+# Reduced output to pha only
+OUT_LIM_MODE = False
 
 class Base(nn.Module):
     """
@@ -29,10 +31,10 @@ class Base(nn.Module):
             self.decoder = Decoder([256, 128, 64, 48, out_channels], [32, 24, 16, in_channels])
 
         # Clamp value for artifact prevention
-        if backbone in ['mobilenetv2']:
-            self.hid_sm_clamp = 0.25
-        else:
-            self.hid_sm_clamp = 1.0
+#        if backbone in ['mobilenetv2']:
+#            self.hid_sm_clamp = 0.25
+#        else:
+#            self.hid_sm_clamp = 1.0
 
     def forward(self, x):
         x, *shortcuts = self.backbone(x)
@@ -98,16 +100,22 @@ class MattingBase(Base):
         x = self.aspp(x)
         x = self.decoder(x, *shortcuts)
         pha = x[:, 0:1].clamp_(0., 1.)
-        #fgr = x[:, 1:4].add(src).clamp_(0., 1.)
-        #err = x[:, 4:5].clamp_(0., 1.)
-        #hid = x[:, 5: ].relu_()
-
-#        pha = F.interpolate(pha, (src_h, src_w), mode='bilinear', align_corners=False)
-#        fgr = F.interpolate(fgr, (src_h, src_w), mode='bilinear', align_corners=False)
-
-        #return pha, fgr, err, hid
-        return pha
-
+        fgr = x[:, 1:4].add(src).clamp_(0., 1.)
+        err = x[:, 4:5].clamp_(0., 1.)
+        hid = x[:, 5: ].relu_()
+        return pha, fgr, err, hid
+"""
+        # Reduced output to pha only
+        if(OUT_LIM_MODE):
+            return pha
+        else:
+            fgr = x[:, 1:4].add(src).clamp_(0., 1.)
+            err = x[:, 4:5].clamp_(0., 1.)
+            hid = x[:, 5: ].relu_()
+#            pha = F.interpolate(pha, (src_h, src_w), mode='bilinear', align_corners=False)
+#            fgr = F.interpolate(fgr, (src_h, src_w), mode='bilinear', align_corners=False)
+            return pha, fgr, err, hid
+"""
 
 class MattingRefine(MattingBase):
     """
@@ -207,10 +215,12 @@ class MattingRefine(MattingBase):
         pha_sm = x[:, 0:1].clamp_(0., 1.)
         fgr_sm = x[:, 1:4]
         err_sm = x[:, 4:5].clamp_(0., 1.)
-        if(self.hid_sm_clamp < 1):
-            hid_sm = x[:, 5: ].relu_().clamp_(0., self.hid_sm_clamp)
-        else:
-           hid_sm = x[:, 5: ].relu_() 
+        hid_sm = x[:, 5: ].relu_()
+        
+        #if(self.hid_sm_clamp < 1):
+        #    hid_sm = x[:, 5: ].relu_().clamp_(0., self.hid_sm_clamp)
+        #else:
+        #   hid_sm = x[:, 5: ].relu_() 
 
         #import numpy as np
         #import matplotlib.pyplot as plt
@@ -225,10 +235,12 @@ class MattingRefine(MattingBase):
         
         # Clamp outputs
         pha = pha.clamp_(0., 1.)
-        # Reduced output to One
-        #fgr = fgr.add_(src).clamp_(0., 1.)
-        #fgr_sm = src_sm.add_(fgr_sm).clamp_(0., 1.)
-        
-        #return pha, fgr, pha_sm, fgr_sm, err_sm, ref_sm
-        # Reduced output to One
-        return pha
+
+        # Reduced output to pha only
+        if(OUT_LIM_MODE):
+            return pha
+        else:
+            fgr = fgr.add_(src).clamp_(0., 1.)
+            fgr_sm = src_sm.add_(fgr_sm).clamp_(0., 1.)
+            return pha, fgr, pha_sm, fgr_sm, err_sm, ref_sm
+

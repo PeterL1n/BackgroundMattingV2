@@ -39,6 +39,8 @@ from dataset import augmentation as A
 from model import MattingBase, MattingRefine
 from inference_utils import HomographicAlignment
 
+# Reduced output to pha only
+OUT_LIM_MODE = True
 
 # --------------- Arguments ---------------
 
@@ -193,8 +195,11 @@ with torch.no_grad():
         if args.model_type == 'mattingbase':
             pha, fgr, err, _ = model(src, bgr)
         elif args.model_type == 'mattingrefine':
-            #pha, fgr, _, _, err, ref = model(src, bgr)
-            pha = model(src, bgr)
+            if(OUT_LIM_MODE):
+                # Reduced output to pha only
+                pha = model(src, bgr)
+            else:
+                pha, fgr, _, _, err, ref = model(src, bgr)
         elif args.model_type == 'mattingbm':
             pha, fgr = model(src, bgr)
 
