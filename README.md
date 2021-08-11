@@ -7,6 +7,8 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 * [Visit project site](https://grail.cs.washington.edu/projects/background-matting-v2/)
 * [Watch project video](https://www.youtube.com/watch?v=oMfPTeYDF9g)
 
+**Disclaimer**: The video conversion script in this repo is not meant be real-time. Our research's main contribution is the neural architecture for high resolution refinement and the new matting datasets. The `inference_speed_test.py` script allows you to measure the tensor throughput of our model, which should achieve real-time. The `inference_video.py` script allows you to test your video on our model, but the video encoding and decoding is done without hardware acceleration and parallization. For production use, you are expected to do additional engineering for hardware encoding/decoding and loading frames to GPU in parallel. For more architecture detail, please refer to our paper.
+
 &nbsp;
 
 ## Overview
@@ -22,12 +24,12 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 * [Training](#training)
 * [Project members](#project-members)
 * [License](#license)
-* [Community Projects](#community-projects)
 
 &nbsp;
 
 ## Updates
 
+* [Jun 21 2021] Paper received CVPR 2021 Best Student Paper Honorable Mention.
 * [Apr 21 2021] VideoMatte240K dataset is now published.
 * [Mar 06 2021] Training script is published.
 * [Feb 28 2021] Paper is accepted to CVPR 2021.
@@ -50,17 +52,7 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 
 ### Datasets
 
-* VideoMatte240K
-   * [VideoMatte240K (HEVC) (5G)](https://drive.google.com/file/d/1z-KDuqk1g7-H94iGXDrpZGpexN9jizbQ/view?usp=sharing)
-   * [VideoMatte240K (JPEG HD) (60G)](https://drive.google.com/file/d/1IUp_301x8BnPjE81QBzyLASn3ZSosUF6/view?usp=sharing)
-   * [VideoMatte240K (JPEG SD) (6G)](https://drive.google.com/file/d/1-S4F-rB75E8I7YUpHfu3itIl1knFhhFF/view?usp=sharing)
-   * [VideoMatte240K License](https://drive.google.com/file/d/1urYXd56rXk2VRpfAA_vvmzsVXzx27vvz/view?usp=sharing)
-   * We provide VideoMatte240K dataset in 3 formats. The first one has all the clips encoded as HEVC videos at full resolution. We also provide the dataset in JPEG sequence format, which is easier to use for ML training. The HD version keeps all the clips at their full resolution. The SD version resizes all the clips to 768x432 with high compression rate.
-   * The dataset can be used for either commercial / non-commercial purposes. Our work must be cited for any publication.
-* [PhotoMatte85](https://drive.google.com/file/d/1KpHKYW986Dax9-ZIM7I-HyBoWVcLPuaQ/view?usp=sharing)
-* [Backgrounds (Validation set)](https://drive.google.com/file/d/1FqD-HfwXwbeTswQEIFaQkaVWUh_i6cSy/view?usp=sharing)
-   * We only release the validation set that contains near 200 images with CC license.
-
+* [Download datasets](https://grail.cs.washington.edu/projects/background-matting-v2/#/datasets)
 
 &nbsp;
 
@@ -82,9 +74,6 @@ Additionally, you can try our notebooks in Google Colab for performing matting o
 #### Virtual Camera
 We provide a demo application that pipes webcam video through our model and outputs to a virtual camera. The script only works on Linux system and can be used in Zoom meetings. For more information, checkout:
 * [Webcam plugin](https://github.com/andreyryabtsev/BGMv2-webcam-plugin-linux)
-
-#### Web Demo
-Developers in the community has helped us build a web demo. See [Community Projects](#community-projects) section below. 
 
 &nbsp;
 
@@ -115,10 +104,10 @@ Configure `data_path.pth` to point to your dataset. The original paper uses `tra
 ## License ##
 This work is licensed under the [MIT License](LICENSE). If you use our work in your project, we would love you to include an acknowledgement and fill out our [survey](https://docs.google.com/forms/d/e/1FAIpQLSdR9Yhu9V1QE3pN_LvZJJyDaEpJD2cscOOqMz8N732eLDf42A/viewform?usp=sf_link).
 
-&nbsp;
-
 ## Community Projects
+Projects developed by third-party developers.
 
+<<<<<<< HEAD
 A list of projects built by third-party developers in the community. If you have a project to share, fill out this [survey]([survey](https://docs.google.com/forms/d/e/1FAIpQLSdR9Yhu9V1QE3pN_LvZJJyDaEpJD2cscOOqMz8N732eLDf42A/viewform?usp=sf_link)).
 
 * [Web Demo by Gradio](https://gradio.app/g/BackgroundMattingV2): Matting your own images from your browser.
@@ -126,3 +115,6 @@ A list of projects built by third-party developers in the community. If you have
 ## Tips
 
 * When converting torch model to onnx, set pytorch verison to 1.6.0 or less because "IF" node cannot convert tensorRT7.
+=======
+* [After Effects Plug-In](https://aescripts.com/goodbye-greenscreen/)
+>>>>>>> 39aabd96fddc8cb60824711b5d2bbc5290af277c
