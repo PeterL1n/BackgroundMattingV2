@@ -13,7 +13,7 @@ Official repository for the paper [Real-Time High-Resolution Background Matting]
 
 ## New Paper is Out!
 
-Check out [Robust Video Matting](https://github.com/PeterL1n/RobustVideoMatting)! Our new method does not require pre-captured backgrounds, and can inference at even faster speed!
+Check out [Robust Video Matting](https://peterl1n.github.io/RobustVideoMatting/)! Our new method does not require pre-captured backgrounds, and can inference at even faster speed!
 
 &nbsp;
 
