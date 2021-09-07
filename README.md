@@ -117,7 +117,6 @@ A list of projects built by third-party developers in the community. If you have
 * When converting torch model to onnx, set pytorch verison to 1.6.0 or less because "IF" node cannot convert tensorRT7.
 =======
 * [After Effects Plug-In](https://aescripts.com/goodbye-greenscreen/)
->>>>>>> 39aabd96fddc8cb60824711b5d2bbc5290af277c
 
 ## export onnx
 
