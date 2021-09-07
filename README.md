@@ -118,3 +118,33 @@ A list of projects built by third-party developers in the community. If you have
 =======
 * [After Effects Plug-In](https://aescripts.com/goodbye-greenscreen/)
 >>>>>>> 39aabd96fddc8cb60824711b5d2bbc5290af277c
+
+## export onnx
+
+* export_onnx.pyでtorch-modelをonnxに変換する.
+
+```python
+    pip3 install onnxruntime
+    # Convert to onnx (for TensorRT 7)
+    python export_onnx.py \
+        --model-type mattingrefine \
+        --model-checkpoint "PATH_TO_MODEL_CHECKPOINT" \
+        --model-backbone resnet50 \
+        --model-backbone-scale 0.25 \
+        --model-refine-mode full \
+        --resolution 1920 1080 \
+        --onnx-opset-version 11 \
+        --precision float32 \
+        --output "export_model.onnx" \
+        --validate
+```
+* onnxの画サイズ固定するためonnx-simplerで整える.
+
+```python
+    pip3 install onnx-simplifier
+    python3 -m onnxsim export_model.onnx export_model-simplifier.onnx
+    # Or call onnx files at once
+    python3 run-onnx-simplifier.py
+```
+
+* export_model-simplifier.onnxをTensorRTへ.
