@@ -9,8 +9,8 @@ from .refiner import Refiner
 from .resnet import ResNetEncoder
 from .utils import load_matched_state_dict
 
-# Reduced output to pha only
-OUT_LIM_MODE = False
+# Reduced output to pha and fgr
+REDUCED_OUTPUT = True
 
 class Base(nn.Module):
     """
@@ -30,11 +30,11 @@ class Base(nn.Module):
             self.aspp = ASPP(320, [3, 6, 9])
             self.decoder = Decoder([256, 128, 64, 48, out_channels], [32, 24, 16, in_channels])
 
-        # Clamp value for artifact prevention
-#        if backbone in ['mobilenetv2']:
-#            self.hid_sm_clamp = 0.25
-#        else:
-#            self.hid_sm_clamp = 1.0
+        # # Clamp value for artifact prevention
+        # if backbone in ['mobilenetv2']:
+        #     self.hid_sm_clamp = 0.25
+        # else:
+        #     self.hid_sm_clamp = 1.0
 
     def forward(self, x):
         x, *shortcuts = self.backbone(x)
@@ -104,18 +104,7 @@ class MattingBase(Base):
         err = x[:, 4:5].clamp_(0., 1.)
         hid = x[:, 5: ].relu_()
         return pha, fgr, err, hid
-"""
-        # Reduced output to pha only
-        if(OUT_LIM_MODE):
-            return pha
-        else:
-            fgr = x[:, 1:4].add(src).clamp_(0., 1.)
-            err = x[:, 4:5].clamp_(0., 1.)
-            hid = x[:, 5: ].relu_()
-#            pha = F.interpolate(pha, (src_h, src_w), mode='bilinear', align_corners=False)
-#            fgr = F.interpolate(fgr, (src_h, src_w), mode='bilinear', align_corners=False)
-            return pha, fgr, err, hid
-"""
+
 
 class MattingRefine(MattingBase):
     """
@@ -182,17 +171,17 @@ class MattingRefine(MattingBase):
         assert src.size(2) // 4 * 4 == src.size(2) and src.size(3) // 4 * 4 == src.size(3), \
             'src and bgr must have width and height that are divisible by 4'
         
-        # Downsample src and bgr for backbone
-#        src_sm = F.interpolate(src,
-#                               scale_factor=self.backbone_scale,
-#                               mode='bilinear',
-#                               align_corners=False,
-#                               recompute_scale_factor=True)
-#        bgr_sm = F.interpolate(bgr,
-#                               scale_factor=self.backbone_scale,
-#                               mode='bilinear',
-#                               align_corners=False,
-#                               recompute_scale_factor=True)
+        # # Downsample src and bgr for backbone
+        # src_sm = F.interpolate(src,
+        #                        scale_factor=self.backbone_scale,
+        #                        mode='bilinear',
+        #                        align_corners=False,
+        #                        recompute_scale_factor=True)
+        # bgr_sm = F.interpolate(bgr,
+        #                        scale_factor=self.backbone_scale,
+        #                        mode='bilinear',
+        #                        align_corners=False,
+        #                        recompute_scale_factor=True)
 
         # scale_factor cannot be used in TensorRT, specify size as a fixed value.
         _, _, src_h, src_w = src.shape
@@ -217,30 +206,30 @@ class MattingRefine(MattingBase):
         err_sm = x[:, 4:5].clamp_(0., 1.)
         hid_sm = x[:, 5: ].relu_()
         
-        #if(self.hid_sm_clamp < 1):
-        #    hid_sm = x[:, 5: ].relu_().clamp_(0., self.hid_sm_clamp)
-        #else:
-        #   hid_sm = x[:, 5: ].relu_() 
+        # if(self.hid_sm_clamp < 1):
+        #     hid_sm = x[:, 5: ].relu_().clamp_(0., self.hid_sm_clamp)
+        # else:
+        #    hid_sm = x[:, 5: ].relu_() 
 
-        #import numpy as np
-        #import matplotlib.pyplot as plt
-        #fgr_show = np.transpose(np.squeeze(fgr_sm.to('cpu').detach().numpy().copy(),0),(1,2,0))
-        #plt.imshow(fgr_show)
-        #plt.colorbar
-        #plt.show()
-        #print(fgr_show.shape)
+        # import numpy as np
+        # import matplotlib.pyplot as plt
+        # fgr_show = np.transpose(np.squeeze(fgr_sm.to('cpu').detach().numpy().copy(),0),(1,2,0))
+        # plt.imshow(fgr_show)
+        # plt.colorbar
+        # plt.show()
+        # print(fgr_show.shape)
 
         # Refiner
         pha, fgr, ref_sm = self.refiner(src, bgr, pha_sm, fgr_sm, err_sm, hid_sm)
         
         # Clamp outputs
         pha = pha.clamp_(0., 1.)
+        fgr = fgr.add_(src).clamp_(0., 1.)
 
-        # Reduced output to pha only
-        if(OUT_LIM_MODE):
-            return pha
+        # Reduced output to pha and fgr
+        if(REDUCED_OUTPUT):
+            return pha, fgr
         else:
-            fgr = fgr.add_(src).clamp_(0., 1.)
             fgr_sm = src_sm.add_(fgr_sm).clamp_(0., 1.)
             return pha, fgr, pha_sm, fgr_sm, err_sm, ref_sm
 

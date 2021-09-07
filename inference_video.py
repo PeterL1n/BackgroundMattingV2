@@ -39,8 +39,8 @@ from dataset import augmentation as A
 from model import MattingBase, MattingRefine
 from inference_utils import HomographicAlignment
 
-# Reduced output to pha only
-OUT_LIM_MODE = True
+# Reduced output to pha and fgr
+REDUCED_OUTPUT = True
 
 # --------------- Arguments ---------------
 
@@ -53,8 +53,7 @@ parser.add_argument('--model-backbone-scale', type=float, default=0.25)
 parser.add_argument('--model-checkpoint', type=str, required=True)
 parser.add_argument('--model-refine-mode', type=str, default='sampling', choices=['full', 'sampling', 'thresholding','fastfull'])
 parser.add_argument('--model-refine-sample-pixels', type=int, default=80_000)
-#parser.add_argument('--model-refine-threshold', type=float, default=0.7)
-parser.add_argument('--model-refine-threshold', type=int, default=1) # model-refine-threshold / 100
+parser.add_argument('--model-refine-threshold', type=int, default=10) # model-refine-threshold / 100
 parser.add_argument('--model-refine-kernel-size', type=int, default=3)
 
 parser.add_argument('--video-src', type=str, required=True)
@@ -195,9 +194,9 @@ with torch.no_grad():
         if args.model_type == 'mattingbase':
             pha, fgr, err, _ = model(src, bgr)
         elif args.model_type == 'mattingrefine':
-            if(OUT_LIM_MODE):
-                # Reduced output to pha only
-                pha = model(src, bgr)
+            if(REDUCED_OUTPUT):
+                # Reduced output to pha and fgr
+                pha, fgr = model(src, bgr)
             else:
                 pha, fgr, _, _, err, ref = model(src, bgr)
         elif args.model_type == 'mattingbm':

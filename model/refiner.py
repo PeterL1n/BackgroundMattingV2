@@ -207,33 +207,36 @@ class Refiner(nn.Module):
                 ref.mul_(err.gt(0).float())
             ref = ref.view(b, 1, h, w)
 
-            #import numpy as np
-            #import matplotlib.pyplot as plt
-            #ref_show = np.transpose(np.squeeze(ref,0),(1,2,0))
-            #plt.imshow(ref_show)
-            #plt.colorbar
-            #plt.show()
-            #print(ref_show.shape)
+            # import numpy as np
+            # import matplotlib.pyplot as plt
+            # ref_show = np.transpose(np.squeeze(ref,0),(1,2,0))
+            # plt.imshow(ref_show)
+            # plt.colorbar
+            # plt.show()
+            # print(ref_show.shape)
+
         else:
-            # Thresholding mode.
-            #ref = err.gt(self.threshold).float()
+            # # Thresholding mode.
+            # ref = err.gt(self.threshold).float()
 
             if(type(self.threshold)) == float:
                 ref = err.gt(self.threshold).float()
             else:
-                # TensorRT7 cannot convert bool judgment.
-                #ref = torch.where(torch.mul(err, 100) > 1, 100, 0).float()
-                #ref = ref * 0.01
+
+                # # TensorRT7 cannot convert bool judgment.
+                # ref = torch.where(torch.mul(err, 100) > 1, 100, 0).float()
+                # ref = ref * 0.01
                 
                 # self.threshold = 1 ---> ref = 0.01
                 ref = torch.mul(err, 100).gt(self.threshold).float()
-                #import numpy as np
-                #import matplotlib.pyplot as plt
-                #ref_show = np.transpose(np.squeeze(ref,0),(1,2,0))
-                #plt.imshow(ref_show)
-                #plt.colorbar
-                #plt.show()
-                #print(ref_show.shape)
+
+                # import numpy as np
+                # import matplotlib.pyplot as plt
+                # ref_show = np.transpose(np.squeeze(ref,0),(1,2,0))
+                # plt.imshow(ref_show)
+                # plt.colorbar
+                # plt.show()
+                # print(ref_show.shape)
                 
         return ref
     
