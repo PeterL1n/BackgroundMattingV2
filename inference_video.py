@@ -68,6 +68,8 @@ parser.add_argument('--output-dir', type=str, required=True)
 parser.add_argument('--output-types', type=str, required=True, nargs='+', choices=['com', 'pha', 'fgr', 'err', 'ref'])
 parser.add_argument('--output-format', type=str, default='video', choices=['video', 'image_sequences'])
 
+parser.add_argument('--pha-gain', type=float, default=1.0)
+
 args = parser.parse_args()
 
 
@@ -201,6 +203,10 @@ with torch.no_grad():
                 pha, fgr, _, _, err, ref = model(src, bgr)
         elif args.model_type == 'mattingbm':
             pha, fgr = model(src, bgr)
+
+        # Apply gain to pha
+        pha = pha * args.pha_gain
+        pha = torch.clamp(pha,0.0,1.0)
 
         if 'com' in args.output_types:
             if args.output_format == 'video':
