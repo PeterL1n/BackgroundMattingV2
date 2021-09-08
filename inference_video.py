@@ -39,6 +39,8 @@ from dataset import augmentation as A
 from model import MattingBase, MattingRefine
 from inference_utils import HomographicAlignment
 
+from read_write_utils import VideoReader, VideoWriter
+
 # Reduced output to pha and fgr
 REDUCED_OUTPUT = True
 
@@ -70,6 +72,7 @@ parser.add_argument('--output-format', type=str, default='video', choices=['vide
 
 parser.add_argument('--pha-gain', type=float, default=1.0)
 parser.add_argument('--precision', type=str, default='float32', choices=['float32', 'float16'])
+parser.add_argument('--output-video-mbps', type=int, default=100)
 
 args = parser.parse_args()
 
@@ -82,17 +85,17 @@ assert 'ref' not in args.output_types or args.model_type in ['mattingrefine'], \
 # --------------- Utils ---------------
 
 
-class VideoWriter:
-    def __init__(self, path, frame_rate, width, height):
-        self.out = cv2.VideoWriter(path, cv2.VideoWriter_fourcc(*'mp4v'), frame_rate, (width, height))
+# class VideoWriter:
+#     def __init__(self, path, frame_rate, width, height):
+#         self.out = cv2.VideoWriter(path, cv2.VideoWriter_fourcc(*'mp4v'), frame_rate, (width, height))
         
-    def add_batch(self, frames):
-        frames = frames.mul(255).byte()
-        frames = frames.cpu().permute(0, 2, 3, 1).numpy()
-        for i in range(frames.shape[0]):
-            frame = frames[i]
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-            self.out.write(frame)
+#     def add_batch(self, frames):
+#         frames = frames.mul(255).byte()
+#         frames = frames.cpu().permute(0, 2, 3, 1).numpy()
+#         for i in range(frames.shape[0]):
+#             frame = frames[i]
+#             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+#             self.out.write(frame)
             
 
 class ImageSequenceWriter:
@@ -164,16 +167,37 @@ os.makedirs(args.output_dir)
 if args.output_format == 'video':
     h = args.video_resize[1] if args.video_resize is not None else vid.height
     w = args.video_resize[0] if args.video_resize is not None else vid.width
+    frame_rate = vid.frame_rate
+    output_video_mbps = args.output_video_mbps
+
+    # # gen output filename from video_src
+    # root, ext = os.path.splitext(args.video_src)
+    # out_filename = root
+    # if 'com' in args.output_types:
+    #     com_writer = VideoWriter(path=os.path.join(args.output_dir, out_filename + '_com.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
+    # if 'pha' in args.output_types:
+    #     pha_writer = VideoWriter(path=os.path.join(args.output_dir, out_filename + '_pha.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
+    # if 'fgr' in args.output_types:
+    #     fgr_writer = VideoWriter(path=os.path.join(args.output_dir, out_filename + '_fgr.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
+    # if 'err' in args.output_types:
+    #     err_writer = VideoWriter(path=os.path.join(args.output_dir, out_filename + '_err.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
+    # if 'ref' in args.output_types:
+    #     ref_writer = VideoWriter(path=os.path.join(args.output_dir, out_filename + '_ref.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
+
+    # gen output filename from video_target_bgr
+    root, ext = os.path.splitext(args.video_target_bgr)
+    out_filename = root[1:]
     if 'com' in args.output_types:
-        com_writer = VideoWriter(os.path.join(args.output_dir, 'com.mp4'), vid.frame_rate, w, h)
+        com_writer = VideoWriter(path=os.path.join(args.output_dir, "EP" + out_filename + '.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
     if 'pha' in args.output_types:
-        pha_writer = VideoWriter(os.path.join(args.output_dir, 'pha.mp4'), vid.frame_rate, w, h)
+        pha_writer = VideoWriter(path=os.path.join(args.output_dir, "EK" + out_filename + '.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
     if 'fgr' in args.output_types:
-        fgr_writer = VideoWriter(os.path.join(args.output_dir, 'fgr.mp4'), vid.frame_rate, w, h)
+        fgr_writer = VideoWriter(path=os.path.join(args.output_dir, "EF" + out_filename + '.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
     if 'err' in args.output_types:
-        err_writer = VideoWriter(os.path.join(args.output_dir, 'err.mp4'), vid.frame_rate, w, h)
+        err_writer = VideoWriter(path=os.path.join(args.output_dir, "EE" + out_filename + '.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
     if 'ref' in args.output_types:
-        ref_writer = VideoWriter(os.path.join(args.output_dir, 'ref.mp4'), vid.frame_rate, w, h)
+        ref_writer = VideoWriter(path=os.path.join(args.output_dir, "ER" + out_filename + '.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
+
 else:
     if 'com' in args.output_types:
         com_writer = ImageSequenceWriter(os.path.join(args.output_dir, 'com'), 'png')
@@ -188,46 +212,62 @@ else:
     
 
 # Conversion loop
-with torch.no_grad():
-    for input_batch in tqdm(DataLoader(dataset, batch_size=1, pin_memory=True)):
-        if args.video_target_bgr:
-            (src, bgr), tgt_bgr = input_batch
-            tgt_bgr = tgt_bgr.to(device, dtype=precision, non_blocking=True)
-        else:
-            src, bgr = input_batch
-            tgt_bgr = torch.tensor([120/255, 255/255, 155/255], device=device,dtype=precision).view(1, 3, 1, 1)
-        src = src.to(device, dtype=precision, non_blocking=True)
-        bgr = bgr.to(device, dtype=precision, non_blocking=True)
+try:
+    with torch.no_grad():
+        for input_batch in tqdm(DataLoader(dataset, batch_size=1, pin_memory=True)):
+            if args.video_target_bgr:
+                (src, bgr), tgt_bgr = input_batch
+                tgt_bgr = tgt_bgr.to(device, dtype=precision, non_blocking=True)
+            else:
+                src, bgr = input_batch
+                tgt_bgr = torch.tensor([120/255, 255/255, 155/255], device=device,dtype=precision).view(1, 3, 1, 1)
+            src = src.to(device, dtype=precision, non_blocking=True)
+            bgr = bgr.to(device, dtype=precision, non_blocking=True)
         
-        if args.model_type == 'mattingbase':
-            pha, fgr, err, _ = model(src, bgr)
-        elif args.model_type == 'mattingrefine':
-            if(REDUCED_OUTPUT):
-                # Reduced output to pha and fgr
+            if args.model_type == 'mattingbase':
+                pha, fgr, err, _ = model(src, bgr)
+            elif args.model_type == 'mattingrefine':
+                if(REDUCED_OUTPUT):
+                    # Reduced output to pha and fgr
+                    pha, fgr = model(src, bgr)
+                else:
+                    pha, fgr, _, _, err, ref = model(src, bgr)
+            elif args.model_type == 'mattingbm':
                 pha, fgr = model(src, bgr)
-            else:
-                pha, fgr, _, _, err, ref = model(src, bgr)
-        elif args.model_type == 'mattingbm':
-            pha, fgr = model(src, bgr)
 
-        # Apply gain to pha
-        pha = pha * args.pha_gain
-        pha = torch.clamp(pha,0.0,1.0)
+            # Apply gain to pha
+            pha = pha * args.pha_gain
+            pha = torch.clamp(pha, 0.0, 1.0)
 
-        if 'com' in args.output_types:
-            if args.output_format == 'video':
-                # Output composite with green background
-                com = fgr * pha + tgt_bgr * (1 - pha)
-                com_writer.add_batch(com)
-            else:
-                # Output composite as rgba png images
-                com = torch.cat([fgr * pha.ne(0), pha], dim=1)
-                com_writer.add_batch(com)
-        if 'pha' in args.output_types:
-            pha_writer.add_batch(pha)
-        if 'fgr' in args.output_types:
-            fgr_writer.add_batch(fgr)
-        if 'err' in args.output_types:
-            err_writer.add_batch(F.interpolate(err, src.shape[2:], mode='bilinear', align_corners=False))
-        if 'ref' in args.output_types:
-            ref_writer.add_batch(F.interpolate(ref, src.shape[2:], mode='nearest'))
+            if 'com' in args.output_types:
+                if args.output_format == 'video':
+                    # Output composite with green background
+                    com = fgr * pha + tgt_bgr * (1 - pha)
+                    com_writer.write(com)
+                else:
+                    # Output composite as rgba png images
+                    com = torch.cat([fgr * pha.ne(0), pha], dim=1)
+                    com_writer.write(com)
+            if 'pha' in args.output_types:
+                pha_writer.write(pha)
+            if 'fgr' in args.output_types:
+                fgr_writer.write(fgr)
+            if 'err' in args.output_types:
+                err_writer.write(F.interpolate(err, src.shape[2:], mode='bilinear', align_corners=False))
+            if 'ref' in args.output_types:
+                ref_writer.write(F.interpolate(ref, src.shape[2:], mode='nearest'))
+
+finally:
+    # Clean up
+    if 'com' in args.output_types:
+        com_writer.close()
+    if 'pha' in args.output_types:
+        pha_writer.close()
+    if 'fgr' in args.output_types:
+        fgr_writer.close()
+    if 'err' in args.output_types:
+        err_writer.close()
+    if 'ref' in args.output_types:
+        ref_writer.close()
+
+

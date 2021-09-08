@@ -38,7 +38,7 @@
                 "--model-refine-mode", "full",
                 //"--model-refine-mode", "sampling",
                 //"--model-refine-sample-pixels", "160000",
-                "--pha-gain", "1.5",
+                "--pha-gain", "1.2",
                 "--precision", "float32",
                 //"--model-refine-mode", "thresholding",
                 //"--model-refine-mode", "fastfull",
@@ -47,7 +47,6 @@
                 "--video-bgr", "C0020011.png",
                 "--video-target-bgr", "B_002_S002_S002_T012.MOV",
                 "--output-dir", "output",
-                //"--output-type", "com", "pha", "fgr", "err", "ref"],
                 "--output-type", "com", "pha", "fgr"],
 
         }
