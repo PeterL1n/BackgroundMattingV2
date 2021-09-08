@@ -69,6 +69,7 @@ parser.add_argument('--output-types', type=str, required=True, nargs='+', choice
 parser.add_argument('--output-format', type=str, default='video', choices=['video', 'image_sequences'])
 
 parser.add_argument('--pha-gain', type=float, default=1.0)
+parser.add_argument('--precision', type=str, default='float32', choices=['float32', 'float16'])
 
 args = parser.parse_args()
 
@@ -130,9 +131,14 @@ if args.model_type == 'mattingrefine':
         args.model_refine_threshold,
         args.model_refine_kernel_size)
 
-model = model.to(device).eval()
 model.load_state_dict(torch.load(args.model_checkpoint, map_location=device), strict=False)
 
+if args.precision == 'float32':
+    precision = torch.float32
+else:
+    precision = torch.float16
+    
+model = model.eval().to(device=device, dtype=precision)
 
 # Load video and background
 vid = VideoDataset(args.video_src)
@@ -186,12 +192,12 @@ with torch.no_grad():
     for input_batch in tqdm(DataLoader(dataset, batch_size=1, pin_memory=True)):
         if args.video_target_bgr:
             (src, bgr), tgt_bgr = input_batch
-            tgt_bgr = tgt_bgr.to(device, non_blocking=True)
+            tgt_bgr = tgt_bgr.to(device, dtype=precision, non_blocking=True)
         else:
             src, bgr = input_batch
-            tgt_bgr = torch.tensor([120/255, 255/255, 155/255], device=device).view(1, 3, 1, 1)
-        src = src.to(device, non_blocking=True)
-        bgr = bgr.to(device, non_blocking=True)
+            tgt_bgr = torch.tensor([120/255, 255/255, 155/255], device=device,dtype=precision).view(1, 3, 1, 1)
+        src = src.to(device, dtype=precision, non_blocking=True)
+        bgr = bgr.to(device, dtype=precision, non_blocking=True)
         
         if args.model_type == 'mattingbase':
             pha, fgr, err, _ = model(src, bgr)
