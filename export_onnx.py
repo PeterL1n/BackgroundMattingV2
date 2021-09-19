@@ -55,6 +55,9 @@ from model import MattingBase, MattingRefine
 # Reduced output to pha and fgr
 REDUCED_OUTPUT = True
 
+# Reduced output to pha only
+PHA_ONLY = False
+
 # --------------- Arguments ---------------
 
 
@@ -151,8 +154,12 @@ if args.model_type == 'mattingbase':
 if args.model_type == 'mattingrefine':
     input_names=['src', 'bgr']
     if(REDUCED_OUTPUT):
-        # Reduced output to pha and fgr
-        output_names = ['pha', 'fgr']
+        if(PHA_ONLY):
+            # Reduced output to pha only
+            output_names = ['pha']
+        else:
+            # Reduced output to pha and fgr
+            output_names = ['pha', 'fgr']
     else:
         output_names = ['pha', 'fgr', 'pha_sm', 'fgr_sm', 'err_sm', 'ref_sm']
 
@@ -171,12 +178,19 @@ if args.precision == 'float32':
 else:
     precision_name = "fp16"
 
+if(PHA_ONLY):
+    # Reduced output to pha only
+    out_file_name = "out_pha"
+else:
+    # Reduced output to pha and fgr
+    out_file_name = "out_pha_fgr"
+
 output_name = root \
                 + "_"  + str(args.model_backbone) \
                 + "_sc0" + str(int(args.model_backbone_scale * 100)) \
                 + "_" + refine_mode_name \
                 + "_" + precision_name \
-                + "_" + "out_pha_fgr" \
+                + "_" + out_file_name \
                 + ext \
 
 torch.onnx.export(

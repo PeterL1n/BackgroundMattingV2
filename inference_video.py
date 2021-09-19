@@ -44,6 +44,9 @@ from read_write_utils import VideoReader, VideoWriter
 # Reduced output to pha and fgr
 REDUCED_OUTPUT = True
 
+# Reduced output to pha only
+PHA_ONLY = False
+
 # --------------- Arguments ---------------
 
 
@@ -170,33 +173,33 @@ if args.output_format == 'video':
     frame_rate = vid.frame_rate
     output_video_mbps = args.output_video_mbps
 
-    # # gen output filename from video_src
-    # root, ext = os.path.splitext(args.video_src)
-    # out_filename = root
-    # if 'com' in args.output_types:
-    #     com_writer = VideoWriter(path=os.path.join(args.output_dir, out_filename + '_com.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
-    # if 'pha' in args.output_types:
-    #     pha_writer = VideoWriter(path=os.path.join(args.output_dir, out_filename + '_pha.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
-    # if 'fgr' in args.output_types:
-    #     fgr_writer = VideoWriter(path=os.path.join(args.output_dir, out_filename + '_fgr.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
-    # if 'err' in args.output_types:
-    #     err_writer = VideoWriter(path=os.path.join(args.output_dir, out_filename + '_err.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
-    # if 'ref' in args.output_types:
-    #     ref_writer = VideoWriter(path=os.path.join(args.output_dir, out_filename + '_ref.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
-
-    # gen output filename from video_target_bgr
-    root, ext = os.path.splitext(args.video_target_bgr)
-    out_filename = root[1:]
+    # gen output filename from video_src
+    basename_without_ext = os.path.splitext(os.path.basename(args.video_src))[0]
+    out_filename = basename_without_ext
     if 'com' in args.output_types:
-        com_writer = VideoWriter(path=os.path.join(args.output_dir, "EP" + out_filename + '.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
+        com_writer = VideoWriter(path=os.path.join(args.output_dir, out_filename + '_com.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
     if 'pha' in args.output_types:
-        pha_writer = VideoWriter(path=os.path.join(args.output_dir, "EK" + out_filename + '.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
+        pha_writer = VideoWriter(path=os.path.join(args.output_dir, out_filename + '_pha.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
     if 'fgr' in args.output_types:
-        fgr_writer = VideoWriter(path=os.path.join(args.output_dir, "EF" + out_filename + '.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
+        fgr_writer = VideoWriter(path=os.path.join(args.output_dir, out_filename + '_fgr.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
     if 'err' in args.output_types:
-        err_writer = VideoWriter(path=os.path.join(args.output_dir, "EE" + out_filename + '.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
+        err_writer = VideoWriter(path=os.path.join(args.output_dir, out_filename + '_err.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
     if 'ref' in args.output_types:
-        ref_writer = VideoWriter(path=os.path.join(args.output_dir, "ER" + out_filename + '.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
+        ref_writer = VideoWriter(path=os.path.join(args.output_dir, out_filename + '_ref.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
+
+    # # gen output filename from video_target_bgr
+    # root, ext = os.path.splitext(args.video_target_bgr)
+    # out_filename = root[1:]
+    # if 'com' in args.output_types:
+    #     com_writer = VideoWriter(path=os.path.join(args.output_dir, "EP" + out_filename + '.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
+    # if 'pha' in args.output_types:
+    #     pha_writer = VideoWriter(path=os.path.join(args.output_dir, "EK" + out_filename + '.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
+    # if 'fgr' in args.output_types:
+    #     fgr_writer = VideoWriter(path=os.path.join(args.output_dir, "EF" + out_filename + '.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
+    # if 'err' in args.output_types:
+    #     err_writer = VideoWriter(path=os.path.join(args.output_dir, "EE" + out_filename + '.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
+    # if 'ref' in args.output_types:
+    #     ref_writer = VideoWriter(path=os.path.join(args.output_dir, "ER" + out_filename + '.mp4'), frame_rate=frame_rate, bit_rate=int(output_video_mbps * 1000000))
 
 else:
     if 'com' in args.output_types:
@@ -228,8 +231,12 @@ try:
                 pha, fgr, err, _ = model(src, bgr)
             elif args.model_type == 'mattingrefine':
                 if(REDUCED_OUTPUT):
-                    # Reduced output to pha and fgr
-                    pha, fgr = model(src, bgr)
+                    if(PHA_ONLY):
+                        # Reduced output to pha only
+                        pha, _ = model(src, bgr)
+                    else:
+                        # Reduced output to pha and fgr
+                        pha, fgr = model(src, bgr)
                 else:
                     pha, fgr, _, _, err, ref = model(src, bgr)
             elif args.model_type == 'mattingbm':

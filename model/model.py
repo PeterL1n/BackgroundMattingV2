@@ -12,6 +12,10 @@ from .utils import load_matched_state_dict
 # Reduced output to pha and fgr
 REDUCED_OUTPUT = True
 
+# Reduced output to pha only
+PHA_ONLY = False
+
+
 class Base(nn.Module):
     """
     A generic implementation of the base encoder-decoder network inspired by DeepLab.
@@ -228,8 +232,12 @@ class MattingRefine(MattingBase):
 
         # Reduced output to pha and fgr
         if(REDUCED_OUTPUT):
-            return pha, fgr
+            if(PHA_ONLY):
+                # Reduced output to pha only
+                return pha
+            else:
+                # Reduced output to pha and fgr
+                return pha, fgr
         else:
             fgr_sm = src_sm.add_(fgr_sm).clamp_(0., 1.)
             return pha, fgr, pha_sm, fgr_sm, err_sm, ref_sm
-
