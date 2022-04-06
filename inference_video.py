@@ -81,7 +81,8 @@ assert 'ref' not in args.output_types or args.model_type in ['mattingrefine'], \
 class VideoWriter:
     def __init__(self, path, frame_rate, width, height):
         output_p, input_p = Pipe()
-        Process(target=self.VideoWriterWorker, args=(path, frame_rate, width, height, (output_p, input_p))).start()
+        self.worker = Process(target=self.VideoWriterWorker, args=(path, frame_rate, width, height, (output_p, input_p)))
+        self.worker.start()
         output_p.close()
         self.input_p = input_p
         
@@ -89,13 +90,22 @@ class VideoWriter:
         frames = frames.mul(255).byte().permute(0, 2, 3, 1)
         self.input_p.send(frames.cpu())
 
+    def close(self):
+        self.input_p.send(0)
+        self.worker.join()
+        
     @staticmethod
     def VideoWriterWorker(path, frame_rate, width, height, pipe):
         output_p, input_p = pipe
         input_p.close()
         out = cv2.VideoWriter(path, cv2.VideoWriter_fourcc(*'mp4v'), frame_rate, (width, height))
         while True:
-            frames = output_p.recv().numpy()
+            read_buffer = output_p.recv()
+            # gracefully exit with provided exit code if it is an integer
+            if type(read_buffer) == type(int):
+                out.release()
+                exit(read_buffer)
+            frames = read_buffer.numpy()
             for i in range(frames.shape[0]):
                 frame = frames[i]
                 frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -231,5 +241,17 @@ with torch.no_grad():
             err_writer.add_batch(F.interpolate(err, src.shape[2:], mode='bilinear', align_corners=False))
         if 'ref' in args.output_types:
             ref_writer.add_batch(F.interpolate(ref, src.shape[2:], mode='nearest'))
-    # exit parent and all children processes
-    exit(0)
+    # terminate children processes
+    if args.output_format == 'video':
+        h = args.video_resize[1] if args.video_resize is not None else vid.height
+        w = args.video_resize[0] if args.video_resize is not None else vid.width
+        if 'com' in args.output_types:
+            com_writer.close()
+        if 'pha' in args.output_types:
+            pha_writer.close()
+        if 'fgr' in args.output_types:
+            fgr_writer.close()
+        if 'err' in args.output_types:
+            err_writer.close()
+        if 'ref' in args.output_types:
+            ref_writer.close()
