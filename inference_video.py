@@ -102,7 +102,7 @@ class VideoWriter:
         while True:
             read_buffer = output_p.recv()
             # gracefully exit with provided exit code if it is an integer
-            if type(read_buffer) == type(int):
+            if type(read_buffer) == int:
                 break
             frames = read_buffer.numpy()
             for i in range(frames.shape[0]):
