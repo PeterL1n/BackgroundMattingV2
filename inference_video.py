@@ -243,8 +243,6 @@ with torch.no_grad():
             ref_writer.add_batch(F.interpolate(ref, src.shape[2:], mode='nearest'))
     # terminate children processes
     if args.output_format == 'video':
-        h = args.video_resize[1] if args.video_resize is not None else vid.height
-        w = args.video_resize[0] if args.video_resize is not None else vid.width
         if 'com' in args.output_types:
             com_writer.close()
         if 'pha' in args.output_types:
