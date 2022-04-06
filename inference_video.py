@@ -103,13 +103,13 @@ class VideoWriter:
             read_buffer = output_p.recv()
             # gracefully exit with provided exit code if it is an integer
             if type(read_buffer) == type(int):
-                out.release()
-                exit(read_buffer)
+                break
             frames = read_buffer.numpy()
             for i in range(frames.shape[0]):
                 frame = frames[i]
                 frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
                 out.write(frame)
+        out.release()
             
 
 class ImageSequenceWriter:
