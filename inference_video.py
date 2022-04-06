@@ -30,11 +30,12 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from torchvision import transforms as T
 from torchvision.transforms.functional import to_pil_image
+from multiprocessing import Process, Pipe
 from threading import Thread
 from tqdm import tqdm
 from PIL import Image
 
-from dataset import VideoDataset, ZipDataset
+from dataset import VideoDataset
 from dataset import augmentation as A
 from model import MattingBase, MattingRefine
 from inference_utils import HomographicAlignment
@@ -79,15 +80,26 @@ assert 'ref' not in args.output_types or args.model_type in ['mattingrefine'], \
 
 class VideoWriter:
     def __init__(self, path, frame_rate, width, height):
-        self.out = cv2.VideoWriter(path, cv2.VideoWriter_fourcc(*'mp4v'), frame_rate, (width, height))
+        output_p, input_p = Pipe()
+        Process(target=self.VideoWriterWorker, args=(path, frame_rate, width, height, (output_p, input_p))).start()
+        output_p.close()
+        self.input_p = input_p
         
     def add_batch(self, frames):
-        frames = frames.mul(255).byte()
-        frames = frames.cpu().permute(0, 2, 3, 1).numpy()
-        for i in range(frames.shape[0]):
-            frame = frames[i]
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-            self.out.write(frame)
+        frames = frames.mul(255).byte().permute(0, 2, 3, 1)
+        self.input_p.send(frames.cpu())
+
+    @staticmethod
+    def VideoWriterWorker(path, frame_rate, width, height, pipe):
+        output_p, input_p = pipe
+        input_p.close()
+        out = cv2.VideoWriter(path, cv2.VideoWriter_fourcc(*'mp4v'), frame_rate, (width, height))
+        while True:
+            frames = output_p.recv().numpy()
+            for i in range(frames.shape[0]):
+                frame = frames[i]
+                frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                out.write(frame)
             
 
 class ImageSequenceWriter:
@@ -132,12 +144,16 @@ model.load_state_dict(torch.load(args.model_checkpoint, map_location=device), st
 
 # Load video and background
 vid = VideoDataset(args.video_src)
-bgr = [Image.open(args.video_bgr).convert('RGB')]
-dataset = ZipDataset([vid, bgr], transforms=A.PairCompose([
-    A.PairApply(T.Resize(args.video_resize[::-1]) if args.video_resize else nn.Identity()),
-    HomographicAlignment() if args.preprocess_alignment else A.PairApply(nn.Identity()),
-    A.PairApply(T.ToTensor())
-]))
+bgr = Image.open(args.video_bgr).convert('RGB')
+
+transforms = T.Compose([
+    T.Resize(args.video_resize[::-1]) if args.video_resize else nn.Identity(),
+    T.ToTensor()
+])
+
+bgr = transforms(bgr)
+dataset = VideoDataset(args.video_src, transforms=transforms)
+
 if args.video_target_bgr:
     dataset = ZipDataset([dataset, VideoDataset(args.video_target_bgr, transforms=T.ToTensor())])
 
@@ -179,15 +195,17 @@ else:
 
 # Conversion loop
 with torch.no_grad():
+    # move background to device
+    bgr = (bgr[None]).to(device, non_blocking=False)
     for input_batch in tqdm(DataLoader(dataset, batch_size=1, pin_memory=True)):
         if args.video_target_bgr:
-            (src, bgr), tgt_bgr = input_batch
+            src, tgt_bgr = input_batch
             tgt_bgr = tgt_bgr.to(device, non_blocking=True)
         else:
-            src, bgr = input_batch
+            src = input_batch
             tgt_bgr = torch.tensor([120/255, 255/255, 155/255], device=device).view(1, 3, 1, 1)
+        # move frame to device
         src = src.to(device, non_blocking=True)
-        bgr = bgr.to(device, non_blocking=True)
         
         if args.model_type == 'mattingbase':
             pha, fgr, err, _ = model(src, bgr)
@@ -213,3 +231,5 @@ with torch.no_grad():
             err_writer.add_batch(F.interpolate(err, src.shape[2:], mode='bilinear', align_corners=False))
         if 'ref' in args.output_types:
             ref_writer.add_batch(F.interpolate(ref, src.shape[2:], mode='nearest'))
+    # exit parent and all children processes
+    exit(0)
