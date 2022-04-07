@@ -31,6 +31,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms as T
 from torchvision.transforms.functional import to_pil_image
 from multiprocessing import Process, Pipe
+from queue import Queue
 from threading import Thread
 from tqdm import tqdm
 from PIL import Image
@@ -205,17 +206,28 @@ else:
 
 # Conversion loop
 with torch.no_grad():
+    queue = Queue(1)
+    def load_worker():
+        tgt_bgr = torch.tensor([120/255, 255/255, 155/255]).view(1, 3, 1, 1)
+        for input_batch in tqdm(DataLoader(dataset, batch_size=1, pin_memory=True)):
+            if args.video_target_bgr:
+                src, tgt_bgr = input_batch
+            else:
+                src = input_batch
+            queue.put((src, tgt_bgr))
+        queue.put(None)
+    loader = Thread(target=load_worker)
+    loader.start()
     # move background to device
     bgr = (bgr[None]).to(device, non_blocking=False)
-    for input_batch in tqdm(DataLoader(dataset, batch_size=1, pin_memory=True)):
-        if args.video_target_bgr:
-            src, tgt_bgr = input_batch
-            tgt_bgr = tgt_bgr.to(device, non_blocking=True)
-        else:
-            src = input_batch
-            tgt_bgr = torch.tensor([120/255, 255/255, 155/255], device=device).view(1, 3, 1, 1)
+    while True:
+        task = queue.get()
+        if task == None:
+            break
+        src, tgt_bgr = task
         # move frame to device
         src = src.to(device, non_blocking=True)
+        tgt_bgr = tgt_bgr.to(device, non_blocking=True)
         
         if args.model_type == 'mattingbase':
             pha, fgr, err, _ = model(src, bgr)
@@ -242,6 +254,7 @@ with torch.no_grad():
         if 'ref' in args.output_types:
             ref_writer.add_batch(F.interpolate(ref, src.shape[2:], mode='nearest'))
     # terminate children processes
+    loader.join()
     if args.output_format == 'video':
         if 'com' in args.output_types:
             com_writer.close()
