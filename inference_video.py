@@ -133,136 +133,136 @@ class ImageSequenceWriter:
 
 
 # --------------- Main ---------------
+if __name__ == '__main__':
+
+    device = torch.device(args.device)
+
+    # Load model
+    if args.model_type == 'mattingbase':
+        model = MattingBase(args.model_backbone)
+    if args.model_type == 'mattingrefine':
+        model = MattingRefine(
+            args.model_backbone,
+            args.model_backbone_scale,
+            args.model_refine_mode,
+            args.model_refine_sample_pixels,
+            args.model_refine_threshold,
+            args.model_refine_kernel_size)
+
+    model = model.to(device).eval()
+    model.load_state_dict(torch.load(args.model_checkpoint, map_location=device), strict=False)
 
 
-device = torch.device(args.device)
+    # Load video and background
+    vid = VideoDataset(args.video_src)
+    bgr = Image.open(args.video_bgr).convert('RGB')
 
-# Load model
-if args.model_type == 'mattingbase':
-    model = MattingBase(args.model_backbone)
-if args.model_type == 'mattingrefine':
-    model = MattingRefine(
-        args.model_backbone,
-        args.model_backbone_scale,
-        args.model_refine_mode,
-        args.model_refine_sample_pixels,
-        args.model_refine_threshold,
-        args.model_refine_kernel_size)
+    transforms = T.Compose([
+        T.Resize(args.video_resize[::-1]) if args.video_resize else nn.Identity(),
+        T.ToTensor()
+    ])
 
-model = model.to(device).eval()
-model.load_state_dict(torch.load(args.model_checkpoint, map_location=device), strict=False)
+    bgr = transforms(bgr)
+    dataset = VideoDataset(args.video_src, transforms=transforms)
 
+    if args.video_target_bgr:
+        dataset = ZipDataset([dataset, VideoDataset(args.video_target_bgr, transforms=T.ToTensor())])
 
-# Load video and background
-vid = VideoDataset(args.video_src)
-bgr = Image.open(args.video_bgr).convert('RGB')
-
-transforms = T.Compose([
-    T.Resize(args.video_resize[::-1]) if args.video_resize else nn.Identity(),
-    T.ToTensor()
-])
-
-bgr = transforms(bgr)
-dataset = VideoDataset(args.video_src, transforms=transforms)
-
-if args.video_target_bgr:
-    dataset = ZipDataset([dataset, VideoDataset(args.video_target_bgr, transforms=T.ToTensor())])
-
-# Create output directory
-if os.path.exists(args.output_dir):
-    if input(f'Directory {args.output_dir} already exists. Override? [Y/N]: ').lower() == 'y':
-        shutil.rmtree(args.output_dir)
-    else:
-        exit()
-os.makedirs(args.output_dir)
+    # Create output directory
+    if os.path.exists(args.output_dir):
+        if input(f'Directory {args.output_dir} already exists. Override? [Y/N]: ').lower() == 'y':
+            shutil.rmtree(args.output_dir)
+        else:
+            exit()
+    os.makedirs(args.output_dir)
 
 
-# Prepare writers
-if args.output_format == 'video':
-    h = args.video_resize[1] if args.video_resize is not None else vid.height
-    w = args.video_resize[0] if args.video_resize is not None else vid.width
-    if 'com' in args.output_types:
-        com_writer = VideoWriter(os.path.join(args.output_dir, 'com.mp4'), vid.frame_rate, w, h)
-    if 'pha' in args.output_types:
-        pha_writer = VideoWriter(os.path.join(args.output_dir, 'pha.mp4'), vid.frame_rate, w, h)
-    if 'fgr' in args.output_types:
-        fgr_writer = VideoWriter(os.path.join(args.output_dir, 'fgr.mp4'), vid.frame_rate, w, h)
-    if 'err' in args.output_types:
-        err_writer = VideoWriter(os.path.join(args.output_dir, 'err.mp4'), vid.frame_rate, w, h)
-    if 'ref' in args.output_types:
-        ref_writer = VideoWriter(os.path.join(args.output_dir, 'ref.mp4'), vid.frame_rate, w, h)
-else:
-    if 'com' in args.output_types:
-        com_writer = ImageSequenceWriter(os.path.join(args.output_dir, 'com'), 'png')
-    if 'pha' in args.output_types:
-        pha_writer = ImageSequenceWriter(os.path.join(args.output_dir, 'pha'), 'jpg')
-    if 'fgr' in args.output_types:
-        fgr_writer = ImageSequenceWriter(os.path.join(args.output_dir, 'fgr'), 'jpg')
-    if 'err' in args.output_types:
-        err_writer = ImageSequenceWriter(os.path.join(args.output_dir, 'err'), 'jpg')
-    if 'ref' in args.output_types:
-        ref_writer = ImageSequenceWriter(os.path.join(args.output_dir, 'ref'), 'jpg')
-    
-
-# Conversion loop
-with torch.no_grad():
-    queue = Queue(1)
-    def load_worker():
-        tgt_bgr = torch.tensor([120/255, 255/255, 155/255]).view(1, 3, 1, 1)
-        for input_batch in tqdm(DataLoader(dataset, batch_size=1, pin_memory=True)):
-            if args.video_target_bgr:
-                src, tgt_bgr = input_batch
-            else:
-                src = input_batch
-            queue.put((src, tgt_bgr))
-        queue.put(None)
-    loader = Thread(target=load_worker)
-    loader.start()
-    # move background to device
-    bgr = (bgr[None]).to(device, non_blocking=False)
-    while True:
-        task = queue.get()
-        if task == None:
-            break
-        src, tgt_bgr = task
-        # move frame to device
-        src = src.to(device, non_blocking=True)
-        tgt_bgr = tgt_bgr.to(device, non_blocking=True)
-        
-        if args.model_type == 'mattingbase':
-            pha, fgr, err, _ = model(src, bgr)
-        elif args.model_type == 'mattingrefine':
-            pha, fgr, _, _, err, ref = model(src, bgr)
-        elif args.model_type == 'mattingbm':
-            pha, fgr = model(src, bgr)
-
-        if 'com' in args.output_types:
-            if args.output_format == 'video':
-                # Output composite with green background
-                com = fgr * pha + tgt_bgr * (1 - pha)
-                com_writer.add_batch(com)
-            else:
-                # Output composite as rgba png images
-                com = torch.cat([fgr * pha.ne(0), pha], dim=1)
-                com_writer.add_batch(com)
-        if 'pha' in args.output_types:
-            pha_writer.add_batch(pha)
-        if 'fgr' in args.output_types:
-            fgr_writer.add_batch(fgr)
-        if 'err' in args.output_types:
-            err_writer.add_batch(F.interpolate(err, src.shape[2:], mode='bilinear', align_corners=False))
-        if 'ref' in args.output_types:
-            ref_writer.add_batch(F.interpolate(ref, src.shape[2:], mode='nearest'))
-    # terminate children processes
-    loader.join()
+    # Prepare writers
     if args.output_format == 'video':
+        h = args.video_resize[1] if args.video_resize is not None else vid.height
+        w = args.video_resize[0] if args.video_resize is not None else vid.width
         if 'com' in args.output_types:
-            com_writer.close()
+            com_writer = VideoWriter(os.path.join(args.output_dir, 'com.mp4'), vid.frame_rate, w, h)
         if 'pha' in args.output_types:
-            pha_writer.close()
+            pha_writer = VideoWriter(os.path.join(args.output_dir, 'pha.mp4'), vid.frame_rate, w, h)
         if 'fgr' in args.output_types:
-            fgr_writer.close()
+            fgr_writer = VideoWriter(os.path.join(args.output_dir, 'fgr.mp4'), vid.frame_rate, w, h)
         if 'err' in args.output_types:
-            err_writer.close()
+            err_writer = VideoWriter(os.path.join(args.output_dir, 'err.mp4'), vid.frame_rate, w, h)
         if 'ref' in args.output_types:
-            ref_writer.close()
+            ref_writer = VideoWriter(os.path.join(args.output_dir, 'ref.mp4'), vid.frame_rate, w, h)
+    else:
+        if 'com' in args.output_types:
+            com_writer = ImageSequenceWriter(os.path.join(args.output_dir, 'com'), 'png')
+        if 'pha' in args.output_types:
+            pha_writer = ImageSequenceWriter(os.path.join(args.output_dir, 'pha'), 'jpg')
+        if 'fgr' in args.output_types:
+            fgr_writer = ImageSequenceWriter(os.path.join(args.output_dir, 'fgr'), 'jpg')
+        if 'err' in args.output_types:
+            err_writer = ImageSequenceWriter(os.path.join(args.output_dir, 'err'), 'jpg')
+        if 'ref' in args.output_types:
+            ref_writer = ImageSequenceWriter(os.path.join(args.output_dir, 'ref'), 'jpg')
+
+
+    # Conversion loop
+    with torch.no_grad():
+        queue = Queue(1)
+        def load_worker():
+            tgt_bgr = torch.tensor([120/255, 255/255, 155/255]).view(1, 3, 1, 1)
+            for input_batch in tqdm(DataLoader(dataset, batch_size=1, pin_memory=True)):
+                if args.video_target_bgr:
+                    src, tgt_bgr = input_batch
+                else:
+                    src = input_batch
+                queue.put((src, tgt_bgr))
+            queue.put(None)
+        loader = Thread(target=load_worker)
+        loader.start()
+        # move background to device
+        bgr = (bgr[None]).to(device, non_blocking=False)
+        while True:
+            task = queue.get()
+            if task == None:
+                break
+            src, tgt_bgr = task
+            # move frame to device
+            src = src.to(device, non_blocking=True)
+            tgt_bgr = tgt_bgr.to(device, non_blocking=True)
+
+            if args.model_type == 'mattingbase':
+                pha, fgr, err, _ = model(src, bgr)
+            elif args.model_type == 'mattingrefine':
+                pha, fgr, _, _, err, ref = model(src, bgr)
+            elif args.model_type == 'mattingbm':
+                pha, fgr = model(src, bgr)
+
+            if 'com' in args.output_types:
+                if args.output_format == 'video':
+                    # Output composite with green background
+                    com = fgr * pha + tgt_bgr * (1 - pha)
+                    com_writer.add_batch(com)
+                else:
+                    # Output composite as rgba png images
+                    com = torch.cat([fgr * pha.ne(0), pha], dim=1)
+                    com_writer.add_batch(com)
+            if 'pha' in args.output_types:
+                pha_writer.add_batch(pha)
+            if 'fgr' in args.output_types:
+                fgr_writer.add_batch(fgr)
+            if 'err' in args.output_types:
+                err_writer.add_batch(F.interpolate(err, src.shape[2:], mode='bilinear', align_corners=False))
+            if 'ref' in args.output_types:
+                ref_writer.add_batch(F.interpolate(ref, src.shape[2:], mode='nearest'))
+        # terminate children processes
+        loader.join()
+        if args.output_format == 'video':
+            if 'com' in args.output_types:
+                com_writer.close()
+            if 'pha' in args.output_types:
+                pha_writer.close()
+            if 'fgr' in args.output_types:
+                fgr_writer.close()
+            if 'err' in args.output_types:
+                err_writer.close()
+            if 'ref' in args.output_types:
+                ref_writer.close()
