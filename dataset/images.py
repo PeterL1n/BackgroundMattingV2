@@ -7,7 +7,7 @@ class ImagesDataset(Dataset):
     def __init__(self, root, mode='RGB', transforms=None):
         self.transforms = transforms
         self.mode = mode
-        if os.path.isfile(root):  # 如果root是一个文件
+        if os.path.isfile(root):  # if root is a file.
             self.filenames = [root]
         else:
             self.filenames = sorted([*glob.glob(os.path.join(root, '**', '*.jpg'), recursive=True),
