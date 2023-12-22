@@ -48,7 +48,9 @@ Check out [Robust Video Matting](https://peterl1n.github.io/RobustVideoMatting/)
 
 ### Model / Weights
 
-* [Download model / weights](https://drive.google.com/drive/folders/1cbetlrKREitIgjnIikG1HdM4x72FtgBh?usp=sharing)
+
+* [Download model / weights (GitHub)](https://github.com/PeterL1n/BackgroundMattingV2/releases/tag/v1.0.0)
+* [Download model / weights (GDrive)](https://drive.google.com/drive/folders/1cbetlrKREitIgjnIikG1HdM4x72FtgBh?usp=sharing)
 
 ### Video / Image Examples
 
