@@ -55,12 +55,12 @@ args = parser.parse_args()
 # A wrapper that reads data from cv2.VideoCapture in its own thread to optimize.
 # Use .read() in a tight loop to get the newest frame
 class Camera:
-    def __init__(self, device_id=0, width=1280, height=720):
+    def __init__(self, device_id=0, cam_width=1280, cam_height=720):
         self.capture = cv2.VideoCapture(device_id)
-        self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-        self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-        self.width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
-        self.height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, cam_width)
+        self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, cam_height)
+        self.frame_width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.frame_height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
         # self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 2)
         self.success_reading, self.frame = self.capture.read()
         self.read_lock = Lock()
@@ -69,16 +69,16 @@ class Camera:
         self.thread.start()
 
     def __update(self):
-        while self.success_reading:
-            grabbed, frame = self.capture.read()
-            with self.read_lock:
-                self.success_reading = grabbed
-                self.frame = frame
+            while self.success_reading:
+                grabbed, current_frame = self.capture.read()
+                with self.read_lock:
+                    self.success_reading = grabbed
+                    self.frame = current_frame
 
     def read(self):
         with self.read_lock:
-            frame = self.frame.copy()
-        return frame
+            frame_copy = self.frame.copy()
+        return frame_copy
     def __exit__(self, exec_type, exc_value, traceback):
         self.capture.release()
 
@@ -103,13 +103,13 @@ class FPSTracker:
 # Wrapper for playing a stream with cv2.imshow(). It can accept an image and return keypress info for basic interactivity.
 # It also tracks FPS and optionally overlays info onto the stream.
 class Displayer:
-    def __init__(self, title, width=None, height=None, show_info=True):
-        self.title, self.width, self.height = title, width, height
+    def __init__(self, title, window_width=None, window_height=None, show_info=True):
+        self.title, self.width, self.height = title, window_width, window_height
         self.show_info = show_info
         self.fps_tracker = FPSTracker()
         cv2.namedWindow(self.title, cv2.WINDOW_NORMAL)
-        if width is not None and height is not None:
-            cv2.resizeWindow(self.title, width, height)
+        if window_width is not None and window_height is not None:
+            cv2.resizeWindow(self.title, window_width, window_height)
     # Update the currently showing frame and return key press char code
     def step(self, image):
         fps_estimate = self.fps_tracker.tick()
@@ -142,8 +142,8 @@ width, height = args.resolution
 cam = Camera(width=width, height=height)
 dsp = Displayer('MattingV2', cam.width, cam.height, show_info=(not args.hide_fps))
 
-def cv2_frame_to_cuda(frame):
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+def cv2_frame_to_cuda(frame_):
+    frame = cv2.cvtColor(frame_, cv2.COLOR_BGR2RGB)
     return ToTensor()(Image.fromarray(frame)).unsqueeze_(0).cuda()
 
 with torch.no_grad():

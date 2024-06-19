@@ -77,11 +77,11 @@ assert args.batch_size % distributed_num_gpus == 0
 
 # --------------- Main ---------------
 
-def train_worker(rank, addr, port):
+def train_worker(rank, addr, port_num):
     
     # Distributed Setup
     os.environ['MASTER_ADDR'] = addr
-    os.environ['MASTER_PORT'] = port
+    os.environ['MASTER_PORT'] = str(port_num)
     dist.init_process_group("nccl", rank=rank, world_size=distributed_num_gpus)
     
     # Training DataLoader

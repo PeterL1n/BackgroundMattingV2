@@ -43,10 +43,10 @@ class MattingRefine_TorchScriptWrapper(nn.Module):
         pha, fgr = model(src, bgr)[:2]
     """
     
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *model_args, **model_kwargs):
         super().__init__()
-        self.model = MattingRefine(*args, **kwargs)
-        
+        self.model = MattingRefine(*model_args, **model_kwargs)
+    
         # Hoist the attributes to the top level.
         self.backbone_scale = self.model.backbone_scale
         self.refine_mode = self.model.refiner.mode
@@ -64,8 +64,8 @@ class MattingRefine_TorchScriptWrapper(nn.Module):
         
         return self.model(src, bgr)
     
-    def load_state_dict(self, *args, **kwargs):
-        return self.model.load_state_dict(*args, **kwargs)
+    def load_state_dict(self, *state_dict_args, **state_dict_kwargs):
+        return self.model.load_state_dict(*state_dict_args, **state_dict_kwargs)
     
     
 # --------------- Main ---------------
